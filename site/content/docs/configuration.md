@@ -35,7 +35,7 @@ SwarmCorp reads `swarmcorp.config.json` from the root of the SwarmCorp folder wh
 
 | Key | Default | What it does |
 |---|---|---|
-| `port` | `4317` | Port the hub listens on. If you change it, run `npm run install-claude -- --port <port>` so the hooks follow. |
+| `port` | `4317` | Preferred port. If another program holds it, the hub uses the next free one and records the address in `~/.config/swarmcorp/hub.json`, which the hooks follow automatically. |
 | `host` | `"127.0.0.1"` | Address the hub binds to. Leave it on loopback. The hub can start shells, and requests are only accepted with a localhost `Host` header in any case. |
 | `project` | `null` | The default project directory. `null` means the folder you ran `npm start` from. `~` is expanded. |
 | `capacity` | `12` | The scale of the concurrency gauge. It is not a limit: it sets what counts as full on the dial. |

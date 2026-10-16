@@ -6,7 +6,7 @@ tag: Docs
 readingTime: "4 min"
 ---
 
-SwarmCorp runs on your machine. The dashboard is served at `http://localhost:4317`, there is no account, and nothing is sent anywhere else. Setup takes about five minutes.
+SwarmCorp runs on your machine. The dashboard is served at `http://localhost:4317` by default (or the next free port, if 4317 is taken), there is no account, and nothing is sent anywhere else. Setup takes about five minutes.
 
 ## Prerequisites
 
@@ -23,13 +23,17 @@ Clone the repository and install dependencies:
 git clone https://github.com/KunalSiyag/swarmcorp.git swarmcorp
 cd swarmcorp
 npm install
+npm run build
+npm link        # puts the `swarmcorp` command on your PATH
 ```
 
-Then install the Claude Code side:
+Then connect your agents:
 
 ```bash
-npm run install-claude
+swarmcorp init
 ```
+
+`init` connects Claude Code, plus every other supported agent it finds: Codex, Gemini CLI, Antigravity and opencode. See [Supported agents](/docs/agents). The rest of this section covers what it changes for Claude Code.
 
 This changes four things under `~/.claude`, and backs up any file it changes to `~/.claude/backups/swarmcorp-<timestamp>/` first:
 
@@ -49,10 +53,10 @@ The constitution only applies in swarm mode: in sessions started from the dashbo
 ## Start the dashboard
 
 ```bash
-npm start -- --project ~/code/my-app
+swarmcorp start --project ~/code/my-app
 ```
 
-This builds the client and starts the hub. You should see:
+This starts the hub. You should see:
 
 ```
 ──────────────────────────────────────────────────────────
@@ -62,7 +66,7 @@ This builds the client and starts the hub. You should see:
 ──────────────────────────────────────────────────────────
 ```
 
-Open `http://localhost:4317`.
+Open the address it printed, or run `swarmcorp open`. If another program already uses port 4317, the hub picks the next free port and prints that address instead. Hooks follow it automatically.
 
 ## Your first session
 

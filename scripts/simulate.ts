@@ -45,12 +45,70 @@ async function hook(a: Actor, hook: string, extra: Record<string, unknown> = {})
   }
 }
 
-function burn(a: Actor, scale = 1) {
+const ts = () => new Date().toISOString();
+const line = (file: string, row: unknown) => fs.appendFileSync(file, JSON.stringify(row) + '\n');
+/** One assistant turn in Claude Code's transcript format: optional text, optional tool calls, and usage. */
+function say(file: string, text: string, tools: { name: string; input: Record<string, unknown> }[] = [], scale = 1) {
   const usage = {
     input_tokens: rand(800, 4000) * scale, output_tokens: rand(300, 2500) * scale,
     cache_read_input_tokens: rand(8000, 40000) * scale, cache_creation_input_tokens: rand(0, 6000) * scale,
   };
-  fs.appendFileSync(a.transcript, JSON.stringify({ type: 'assistant', message: { id: `msg_${crypto.randomBytes(6).toString('hex')}`, usage } }) + '\n');
+  const content = [...(text ? [{ type: 'text', text }] : []), ...tools.map((t, i) => ({ type: 'tool_use', id: `toolu_${crypto.randomBytes(4).toString('hex')}${i}`, name: t.name, input: t.input }))];
+  line(file, { type: 'assistant', timestamp: ts(), message: { id: `msg_${crypto.randomBytes(6).toString('hex')}`, role: 'assistant', model: 'claude-sonnet-5-5', content, usage } });
+}
+const asks = (file: string, text: string) => line(file, { type: 'user', timestamp: ts(), message: { role: 'user', content: text } });
+function burn(a: Actor, scale = 1) { say(a.transcript, '', [], scale); }
+
+// Plausible tool activity per role, so terminal mirrors and screenshots show real-looking work.
+const ACTIVITY: Record<string, { text: string; tools: { name: string; input: Record<string, unknown> }[] }[]> = {
+  'ceo-dispatcher': [
+    { text: 'Splitting the epic into three sprints and dispatching research first.', tools: [{ name: 'Read', input: { file_path: 'src/billing/invoice.ts' } }, { name: 'Write', input: { file_path: '.claude/swarm-plan.json' } }] },
+  ],
+  'opus-researcher': [
+    { text: 'Mapping every call site that touches invoices before writing specs.', tools: [{ name: 'Grep', input: { pattern: 'createInvoice' } }, { name: 'Read', input: { file_path: 'src/billing/stripe-webhook.ts' } }] },
+    { text: 'Specs written for S1–S3.', tools: [{ name: 'Write', input: { file_path: '.claude/docs/spec-S1-T1.md' } }] },
+  ],
+  'sonnet-implementer': [
+    { text: 'Adding tenant_id to invoices and scoping the queries.', tools: [{ name: 'Edit', input: { file_path: 'src/billing/invoice.ts' } }, { name: 'Edit', input: { file_path: 'db/migrations/0042_invoice_tenant.sql' } }] },
+    { text: 'Running the fast checks before handing off to QA.', tools: [{ name: 'Bash', input: { command: 'npm run typecheck && npx vitest run src/billing' } }] },
+  ],
+  'haiku-tester': [
+    { text: 'Running the suite on the branch.', tools: [{ name: 'Bash', input: { command: 'npm test -- --reporter=dot' } }, { name: 'Bash', input: { command: 'npm run lint' } }] },
+  ],
+  'opus-auditor': [
+    { text: 'Auditing the diff for tenant isolation and race conditions.', tools: [{ name: 'Bash', input: { command: 'git diff integration...swarm/s1-t1' } }, { name: 'Read', input: { file_path: 'src/billing/invoice.ts' } }] },
+  ],
+};
+
+let agentSeq = 0;
+async function subagent(parent: Actor, type: string, description: string, ms: number, status: string) {
+  const tool_use_id = `toolu_sim_${RUN}_${agentSeq}`;
+  const agent_id = `sim${RUN}${agentSeq++}`;
+  // Same layout Claude Code uses, so the hub's disk scanner and terminal mirrors pick it up.
+  const dir = path.join(path.dirname(parent.transcript), path.basename(parent.transcript, '.jsonl'), 'subagents');
+  fs.mkdirSync(dir, { recursive: true });
+  const agentTranscript = path.join(dir, `agent-${agent_id}.jsonl`);
+  fs.writeFileSync(path.join(dir, `agent-${agent_id}.meta.json`), JSON.stringify({ agentType: type, description, toolUseId: tool_use_id, requestShape: 'background' }));
+  asks(agentTranscript, description);
+  await hook(parent, 'PreToolUse', { tool_name: 'Agent', tool_use_id, tool_input: { subagent_type: type, description, prompt: description } });
+  await hook(parent, 'SubagentStart', { agent_id, agent_type: type });
+  for (const step of ACTIVITY[type] ?? [{ text: 'Working.', tools: [{ name: 'Read', input: { file_path: 'README.md' } }] }]) {
+    say(agentTranscript, step.text, step.tools, 2);
+    await sleep(ms / 2);
+  }
+  say(agentTranscript, `Done.\nSTATUS: ${status}`, [], 1);
+  await hook(parent, 'SubagentStop', { agent_id, agent_type: type, agent_transcript_path: agentTranscript, last_assistant_message: `Done.\nSTATUS: ${status}` });
+  await hook(parent, 'PostToolUse', { tool_name: 'Agent', tool_use_id, tool_response: { status: 'completed', agentId: agent_id } });
+}
+
+async function work(a: Actor, prompt: string, ms: number, finalStatus: string) {
+  asks(a.transcript, prompt);
+  await hook(a, 'UserPromptSubmit', { prompt });
+  const steps = ACTIVITY[a.role] ?? [];
+  for (const step of steps) { say(a.transcript, step.text, step.tools); await sleep(ms / Math.max(2, steps.length + 1)); }
+  say(a.transcript, `Work complete.\nSTATUS: ${finalStatus}`);
+  await sleep(ms / Math.max(2, steps.length + 1));
+  await hook(a, 'Stop', { last_assistant_message: `Work complete.\nSTATUS: ${finalStatus}` });
 }
 
 function mail(from: string, to: string, kind: string, subject: string, task?: string) {
@@ -101,29 +159,6 @@ const planFile = path.join(DIR, '.claude', 'swarm-plan.json');
 function setTask(id: string, status: string, assignee?: string) {
   for (const s of plan.sprints) for (const t of s.tasks as any[]) if (t.id === id) { t.status = status; if (assignee) t.assignee = assignee; }
   fs.writeFileSync(planFile, JSON.stringify(plan, null, 2));
-}
-
-let agentSeq = 0;
-async function subagent(parent: Actor, type: string, description: string, ms: number, status: string) {
-  const tool_use_id = `toolu_sim_${RUN}_${agentSeq}`;
-  const agent_id = `agent-sim-${RUN}-${agentSeq++}`;
-  const agentTranscript = path.join(DIR, '.sim-transcripts', `${agent_id}.jsonl`);
-  await hook(parent, 'PreToolUse', { tool_name: 'Agent', tool_use_id, tool_input: { subagent_type: type, description, prompt: description } });
-  await hook(parent, 'SubagentStart', { agent_id, agent_type: type });
-  await sleep(ms);
-  const sub = { ...parent, transcript: agentTranscript };
-  burn(sub, 2); burn(sub, 1);
-  await hook(parent, 'SubagentStop', { agent_id, agent_type: type, agent_transcript_path: agentTranscript, last_assistant_message: `Done.\nSTATUS: ${status}` });
-  await hook(parent, 'PostToolUse', { tool_name: 'Agent', tool_use_id, tool_response: { status: 'completed', agentId: agent_id } });
-}
-
-async function work(a: Actor, prompt: string, ms: number, finalStatus: string) {
-  await hook(a, 'UserPromptSubmit', { prompt });
-  burn(a);
-  await sleep(ms / 2);
-  burn(a);
-  await sleep(ms / 2);
-  await hook(a, 'Stop', { last_assistant_message: `Work complete.\nSTATUS: ${finalStatus}` });
 }
 
 async function deliverTask(impl: Actor, taskId: string, title: string, failFirst: boolean) {

@@ -17,6 +17,9 @@ readingTime: "1 min"
 - Token meters read Codex rollouts, Gemini chat files and Antigravity step transcripts. The opencode plugin reports usage per message.
 - Terminal mirrors render Codex, Gemini and Antigravity transcripts.
 - Agent and model tags (CODEX · GPT, GEMINI CLI · GEMINI) on nodes and panes. Launch `codex`, `gemini`, `agy` or `opencode` panes from the dashboard.
+- **Any port.** If 4317 is taken, the hub picks the next free port and records its address in `~/.config/swarmcorp/hub.json`. The hook relay, the opencode plugin and the CLI read it from there, so nothing needs reconfiguring. `swarmcorp open` opens the right address and `swarmcorp status` prints it.
+- **Never lose a licence key.** A [Your licence](/account) page links to the billing portal, where you sign in with your purchase email to see your key and invoices. The receipt page can save the key as a file, and **Settings → Licence** can reveal, copy or save the active key.
+- The site shows real captures of the dashboard and prerenders every page with its own title, description, social preview image and structured data. It also has a sitemap.
 
 ## v0.3 — 2026-10-16
 

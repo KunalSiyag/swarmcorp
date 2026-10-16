@@ -3,3 +3,4 @@ dist/
 *.log
 dist-site/
 swarmcorp.log
+dist-site-ssr/

@@ -18,8 +18,14 @@ export function navigate(to: string) {
   });
 }
 
+// At build time there is no location: the prerenderer sets the path it is rendering.
+let serverPath = '/';
+export const setServerPath = (p: string) => { serverPath = p; };
+const snapshot = () => (typeof location === 'undefined' ? serverPath
+  : (location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) : location.pathname) || '/');
+
 export function usePath() {
-  return useSyncExternalStore(subscribe, () => (location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) : location.pathname) || '/');
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 export function Link({ to, className, children, ...rest }: { to: string; className?: string; children: React.ReactNode } & React.AnchorHTMLAttributes<HTMLAnchorElement>) {

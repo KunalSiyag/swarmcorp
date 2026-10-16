@@ -3,7 +3,18 @@
 // Best-effort and fire-and-forget: it never blocks or changes opencode's behaviour.
 // Event shapes: docs/adapters-research.md (opencode 1.18.x).
 
-const HUB = `${(process.env.SWARMCORP_URL ?? 'http://127.0.0.1:4317').replace(/\/+$/, '')}/api/events`;
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+// The hub's port can change between machines and runs: read the address it wrote, then SWARMCORP_URL.
+function hub() {
+  try {
+    const h = JSON.parse(fs.readFileSync(path.join(os.homedir(), '.config', 'swarmcorp', 'hub.json'), 'utf8'));
+    if (h.ingest && h.pid) { process.kill(h.pid, 0); return h.ingest; }
+  } catch { /* fall through */ }
+  return (process.env.SWARMCORP_URL ?? 'http://127.0.0.1:4317').replace(/\/+$/, '');
+}
 
 export const SwarmCorp = async ({ directory }) => {
   const parents = new Map(); // child session id → parent session id (subagents via the task tool)
@@ -12,7 +23,7 @@ export const SwarmCorp = async ({ directory }) => {
   const swarm = { role: process.env.SWARM_ROLE || null, agentId: process.env.SWARM_AGENT_ID || null, paneId: process.env.SWARM_PANE_ID || null };
 
   const post = (hook, payload) => {
-    fetch(HUB, {
+    fetch(`${hub()}/api/events`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-swarmcorp-hook': '1' },
       body: JSON.stringify({ hook, agent: 'opencode', at: Date.now(), swarm, payload: { cwd: directory, ...payload } }),

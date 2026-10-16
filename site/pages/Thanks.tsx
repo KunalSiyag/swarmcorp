@@ -2,6 +2,14 @@ import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { Link, useTitle } from '../lib/router.tsx';
 import { Cmd } from '../components/Chrome.tsx';
+import { SITE } from '../config.ts';
+
+function saveKeys(keys: string[]) {
+  const text = `SwarmCorp Pro licence key${keys.length > 1 ? 's' : ''}\n${keys.join('\n')}\n\nActivate: swarmcorp open → Free → Licence → Activate Pro.\nLost it? ${SITE.dodoPortalUrl}\n`;
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  Object.assign(document.createElement('a'), { href: url, download: 'swarmcorp-licence.txt' }).click();
+  URL.revokeObjectURL(url);
+}
 
 /** Dodo Payments redirects here after checkout with payment_id, status, email and license_key in the query. */
 export default function Thanks() {
@@ -34,15 +42,25 @@ export default function Thanks() {
                   </button>
                 </div>
               ))}
-              <p className="mt-3 font-mono text-[11px] text-ink-3">Keep it somewhere safe. You can move it between machines with Deactivate in Settings.</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => saveKeys(keys)} className="border border-line-2 px-3 py-1.5 font-mono text-[11px] tracking-widest uppercase hover:border-ink-3">Save as file</button>
+                <span className="font-mono text-[11px] text-ink-3">Works on up to 3 machines. Move it with Deactivate in Settings.</span>
+              </div>
             </div>
           )}
           <ol className="space-y-4 border-t border-line pt-6 text-[15px] text-ink-2">
-            <li><span className="num mr-3 text-ink-3">01</span>Start the dashboard if it isn't running.<div className="mt-2 max-w-xl"><Cmd cmd="npm start -- --project ~/code/your-app" /></div></li>
-            <li><span className="num mr-3 text-ink-3">02</span>Open <span className="text-ink">http://localhost:4317</span> and click <span className="text-ink">Free</span> in the top bar.</li>
+            <li><span className="num mr-3 text-ink-3">01</span>Start the dashboard if it isn't running, then open it.<div className="mt-2 max-w-xl space-y-2"><Cmd cmd="swarmcorp start --project ~/code/your-app" /><Cmd cmd="swarmcorp open" /></div></li>
+            <li><span className="num mr-3 text-ink-3">02</span>In the dashboard, click <span className="text-ink">Free</span> in the top bar to open Settings.</li>
             <li><span className="num mr-3 text-ink-3">03</span>Paste the key under Licence and press <span className="text-ink">Activate Pro</span>.</li>
           </ol>
-          <p className="mt-10 font-mono text-[12px] text-ink-3">Payment reference: {q.get('payment_id') ?? '—'} · <Link to="/docs/pro" className="underline decoration-signal underline-offset-4">How Pro works</Link></p>
+          <div className="frame mt-10 p-5">
+            <div className="hud mb-2">Lost it later?</div>
+            <p className="text-[15px] text-ink-2">
+              Your key and invoices always live in the billing portal. Sign in with the email you paid with. There's nothing to remember and no password.
+            </p>
+            <a href={SITE.dodoPortalUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block bg-signal px-4 py-2 font-mono text-[11px] font-semibold tracking-widest text-void uppercase">Open billing portal ↗</a>
+          </div>
+          <p className="mt-6 font-mono text-[12px] text-ink-3">Payment reference: {q.get('payment_id') ?? '—'} · <Link to="/docs/pro" className="underline decoration-signal underline-offset-4">How Pro works</Link></p>
         </>
       ) : (
         <>

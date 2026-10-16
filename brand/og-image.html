@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><style>
+@font-face{font-family:A;src:url(../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2) format('woff2-variations');font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:M;src:url(../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations');font-weight:100 800}
+*{margin:0;box-sizing:border-box}
+html,body{width:1200px;height:630px;overflow:hidden;background:#0a0a0a}
+body{position:relative;background-image:radial-gradient(circle at 1px 1px,#1c1c1c 1px,transparent 0);background-size:28px 28px}
+.shot{position:absolute;left:600px;top:84px;width:820px;border:1px solid #2a2a2a;box-shadow:0 40px 80px -20px #000,0 0 0 1px #000}
+.fade{position:absolute;inset:0;background:linear-gradient(90deg,#0a0a0a 0,#0a0a0a 560px,rgba(10,10,10,.0) 700px),linear-gradient(0deg,#0a0a0a 0,rgba(10,10,10,0) 120px)}
+.hud{position:absolute;font:500 15px M;letter-spacing:.2em;color:#6f6b65;text-transform:uppercase}
+.w{position:absolute;left:64px;top:60px;font:850 34px A;font-stretch:115%;letter-spacing:-.01em;color:#ece7df}
+.h{position:absolute;left:64px;top:184px;width:520px;font:850 66px/0.98 A;font-stretch:112%;letter-spacing:-.025em;color:#ece7df}
+.h span{color:#ff5a1f}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff5a1f;margin-right:10px;vertical-align:1px}
+</style>
+<img class="shot" src="../site/public/screenshots/dashboard-night.webp">
+<div class="fade"></div>
+<div class="w">SWARMCORP</div>
+<div class="hud" style="left:64px;top:112px"><span class="dot"></span>Mission control · local-first</div>
+<div class="h">Every agent<span>.</span><br>One live<br>map<span>.</span></div>
+<div class="hud" style="left:64px;bottom:58px;font-size:12px;letter-spacing:.1em;color:#a8a29a">Claude Code · Codex · Gemini CLI · Antigravity · opencode</div>

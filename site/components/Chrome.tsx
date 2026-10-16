@@ -28,6 +28,7 @@ export function Nav() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <Link to="/account" className="hidden font-mono text-[11px] tracking-[0.14em] text-ink-3 uppercase hover:text-ink sm:inline">Your licence</Link>
           <Link to="/#install" className="bg-signal px-3 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] text-void uppercase hover:brightness-110">Install free</Link>
           <button type="button" className="p-1.5 text-ink-2 md:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
             {open ? <X size={18} /> : <Menu size={18} />}
@@ -53,7 +54,7 @@ export function Footer() {
             Mission control for coding agents. Runs on your machine. Agent counts are cheap. Run logs aren't.
           </p>
         </div>
-        <FooterCol title="Product" links={[['/#instruments', 'Instruments'], ['/#pricing', 'Pricing'], ['/changelog', 'Changelog']]} />
+        <FooterCol title="Product" links={[['/#instruments', 'Instruments'], ['/#pricing', 'Pricing'], ['/account', 'Your licence'], ['/changelog', 'Changelog']]} />
         <FooterCol title="Learn" links={[['/tips', 'Workflow tips'], ['/blog', 'Blog'], ['/docs/getting-started', 'Getting started']]} />
         <FooterCol title="Docs" links={[['/docs/hooks', 'Hooks'], ['/docs/dispatch-queue', 'Dispatch queue'], ['/docs/troubleshooting', 'Troubleshooting']]} />
       </div>
@@ -92,12 +93,12 @@ export function Cmd({ cmd, label }: { cmd: string; label?: string }) {
 }
 
 /** Section heading in the Cutline plate style: mono plate number, heavy display title. */
-export function PlateHead({ n, kicker, title, children }: { n: string; kicker: string; title: React.ReactNode; children?: React.ReactNode }) {
+export function PlateHead({ n, kicker, title, children, as: H = 'h2' }: { n: string; kicker: string; title: React.ReactNode; children?: React.ReactNode; as?: 'h1' | 'h2' }) {
   return (
     <div className="mb-10 grid gap-4 md:grid-cols-[180px_1fr]">
       <div className="hud pt-2">Plate {n}<br /><span className="text-ink-2">{kicker}</span></div>
       <div>
-        <h2 className="display balance text-[clamp(34px,5vw,64px)]">{title}</h2>
+        <H className="display balance text-[clamp(34px,5vw,64px)]">{title}</H>
         {children && <div className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-2">{children}</div>}
       </div>
     </div>

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as pty from 'node-pty';
@@ -11,7 +12,7 @@ import type { AgentKind, ClientMsg, PaneInfo, ServerMsg, SetupStatus } from '../
 import { SwarmState, resolveProjectRoot, type HookEnvelope } from './swarm.ts';
 import { TranscriptTail } from './transcript.ts';
 import { normalize } from './adapters.ts';
-import { activateLicence, currentLicence, deactivateLicence, isPro } from './licence.ts';
+import { activateLicence, currentLicence, deactivateLicence, isPro, storedKey } from './licence.ts';
 import { compareReceipts, getReceipt, listReceipts, saveReceipt } from './archive.ts';
 
 // ───────────────────────────── config ─────────────────────────────────────────
@@ -59,6 +60,27 @@ function loadConfig(): Config {
 }
 
 const cfg = loadConfig();
+
+// The port can differ from machine to machine: if the configured one is taken by another program, use the
+// next free one. The real address is written to ~/.config/swarmcorp/hub.json, which the hook relay, the
+// opencode plugin and `swarmcorp open` read, so nothing depends on 4317.
+const HUB_FILE = path.join(os.homedir(), '.config', 'swarmcorp', 'hub.json');
+async function pickPort(want: number): Promise<number> {
+  const free = (p: number) => new Promise<boolean>((resolve) => {
+    const s = net.createServer().once('error', () => resolve(false)).once('listening', () => s.close(() => resolve(true)));
+    s.listen(p, cfg.host);
+  });
+  if (await free(want)) return want;
+  try {
+    const h = await (await fetch(`http://127.0.0.1:${want}/api/health`, { signal: AbortSignal.timeout(1500) })).json() as { ok?: boolean };
+    if (h?.ok) { console.log(`SwarmCorp is already running at http://localhost:${want}`); process.exit(0); }
+  } catch { /* not a SwarmCorp hub */ }
+  for (let p = want + 1; p <= want + 20; p++) {
+    if (await free(p)) { console.log(`Port ${want} is used by another program, so SwarmCorp is using ${p}.`); return p; }
+  }
+  throw new Error(`No free port between ${want} and ${want + 20}. Pass --port.`);
+}
+cfg.port = await pickPort(cfg.port);
 const LAUNCH_FLEET = process.argv.includes('--fleet');
 const HUB_URL = `http://127.0.0.1:${cfg.port}`;
 const allowedOrigins = new Set([
@@ -321,6 +343,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (method === 'GET' && pathname === '/api/state') return json(res, 200, state.snapshot());
     if (method === 'GET' && pathname === '/api/setup') return json(res, 200, setupStatus());
+    if (method === 'GET' && pathname === '/api/licence/key') return json(res, 200, { key: storedKey() });
     if (pathname === '/api/licence') {
       if (method === 'GET') return json(res, 200, currentLicence());
       if (method === 'POST') { const b = await readBody(req); const info = await activateLicence(String(b.key ?? '')); state.emit('change'); return json(res, 200, info); }
@@ -453,6 +476,10 @@ wss.on('connection', (ws) => {
 });
 
 server.listen(cfg.port, cfg.host, () => {
+  try {
+    fs.mkdirSync(path.dirname(HUB_FILE), { recursive: true, mode: 0o700 });
+    fs.writeFileSync(HUB_FILE, JSON.stringify({ url: `http://localhost:${cfg.port}`, ingest: HUB_URL, port: cfg.port, pid: process.pid, project: cfg.project, startedAt: new Date().toISOString() }, null, 2));
+  } catch { /* hooks fall back to SWARMCORP_URL */ }
   const line = '─'.repeat(58);
   console.log(`\n${line}\n  SwarmCorp mission control   http://localhost:${cfg.port}\n  Hook ingest                 POST ${HUB_URL}/api/events\n  Default project             ${cfg.project}\n${line}\n`);
   if (LAUNCH_FLEET) {
@@ -462,6 +489,7 @@ server.listen(cfg.port, cfg.host, () => {
 });
 
 function shutdown() {
+  try { if (JSON.parse(fs.readFileSync(HUB_FILE, 'utf8')).pid === process.pid) fs.unlinkSync(HUB_FILE); } catch { /* already gone */ }
   // Pro: keep a receipt of the run that is ending, if anything ran.
   try { if (isPro()) { const r = state.receiptRecord(); if (r.runs > 0) saveReceipt(state.snapshot().defaultProject, r); } } catch { /* best-effort */ }
   for (const id of panes.keys()) killPane(id, false);

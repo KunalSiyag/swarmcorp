@@ -7,12 +7,23 @@
 //     and asks the agent to process mail once before it stops (Stop).
 // It must never break Claude: every failure path exits 0 quickly.
 
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { inbox, resolveProjectRoot } from './swarm-mail.mjs';
 
 const argv = process.argv.slice(2);
 const AGENT = argv[0] === '--agent' ? argv[1] : 'claude';
 const HOOK = (argv[0] === '--agent' ? argv[2] : argv[0]) ?? 'Unknown';
-const BASE = (process.env.SWARMCORP_URL ?? 'http://127.0.0.1:4317').replace(/\/+$/, '');
+// Prefer the address the running hub wrote (its port can change); fall back to SWARMCORP_URL, then the default.
+function hubBase() {
+  try {
+    const h = JSON.parse(fs.readFileSync(path.join(os.homedir(), '.config', 'swarmcorp', 'hub.json'), 'utf8'));
+    if (h.ingest && h.pid) { process.kill(h.pid, 0); return h.ingest; }
+  } catch { /* no hub file, or that hub is gone */ }
+  return process.env.SWARMCORP_URL ?? 'http://127.0.0.1:4317';
+}
+const BASE = hubBase().replace(/\/+$/, '');
 const ROLES = new Set(['ceo-dispatcher', 'opus-researcher', 'sonnet-implementer', 'haiku-tester', 'opus-auditor']);
 
 const cut = (s, n) => (typeof s === 'string' && s.length > n ? `${s.slice(0, n)}…[+${s.length - n}]` : s);

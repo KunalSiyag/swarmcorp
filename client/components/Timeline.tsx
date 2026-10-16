@@ -53,7 +53,7 @@ export default function Timeline({ lanes, nodes, projectOnly, selectedId, onSele
 
   // AUTO: from the first visible activity to now (+10% lead-in), at least two minutes.
   const first = ordered.filter((l) => !l.archived).reduce((m, l) => Math.min(m, ...l.segments.map((s) => s.start)), now);
-  const span = RANGES[range].ms || Math.max(120_000, (now - first) * 1.1);
+  const span = RANGES[range].ms || Math.max(30_000, (now - first) * 1.08);
   const t0 = now - span;
   const trackW = Math.max(100, width - LABEL_W - 16);
   const x = (t: number) => LABEL_W + ((Math.max(t, t0) - t0) / span) * trackW;

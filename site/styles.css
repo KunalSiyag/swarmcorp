@@ -6,8 +6,8 @@ html { scroll-behavior: smooth; }
 body { overflow-x: hidden; }
 
 /* Site-only motion: the scene lines type in when they scroll into view. */
-.reveal { opacity: 0; transform: translateY(6px); transition: opacity .6s ease, transform .6s ease; }
-.reveal.in { opacity: 1; transform: none; }
+.js .reveal { opacity: 0; transform: translateY(6px); transition: opacity .6s ease, transform .6s ease; }
+.js .reveal.in { opacity: 1; transform: none; }
 .scan-grid { background-image: radial-gradient(circle at 1px 1px, #1c1c1c 1px, transparent 0); background-size: 28px 28px; }
 .ring-spin  { transform-box: fill-box; transform-origin: center; animation: spin 6s linear infinite; }
 .ring-pulse { transform-box: fill-box; transform-origin: center; animation: ring-pulse 1.8s ease-out infinite; }
@@ -35,4 +35,4 @@ body { overflow-x: hidden; }
 .prose td { border-bottom: 1px solid #c9c3b8; padding: .55em .7em .55em 0; vertical-align: top; }
 .prose hr { border: 0; border-top: 1px solid #c9c3b8; margin: 2em 0; }
 .prose img { max-width: 100%; }
-@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .ring-spin, .ring-pulse { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } .ring-spin, .ring-pulse { animation: none; } }

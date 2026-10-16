@@ -64,28 +64,11 @@ With the hub stopped, your sessions run as usual and the events are dropped. Not
 
 Claude Code loads hooks when a session starts. After `npm run install-claude`, restart sessions that were already open, or open `/hooks` inside each one.
 
-## Changing the port
+## Which port the hooks use
 
-The hub listens on `4317` by default. To move it, change it in two places.
+You don't have to configure it. The hub listens on `4317` by default. If that port is taken, it uses the next free one. Either way it writes its address to `~/.config/swarmcorp/hub.json`. Before every event, the relay reads that file and checks that the hub's process is still alive. If it isn't, the relay falls back to `SWARMCORP_URL`, and then to `http://127.0.0.1:4317`.
 
-**1. Point the hooks at the new port:**
-
-```bash
-npm run install-claude -- --port 4400
-```
-
-This sets `env.SWARMCORP_URL` in `~/.claude/settings.json` to `http://127.0.0.1:4400`. Restart open sessions afterwards.
-
-**2. Start the hub on that port**, with any one of:
-
-```bash
-npm start -- --port 4400 --project ~/code/my-app
-SWARMCORP_PORT=4400 npm start -- --project ~/code/my-app
-```
-
-or `"port": 4400` in `swarmcorp.config.json`. If more than one is set, `SWARMCORP_PORT` wins, then `--port`, then the config file.
-
-Panes launched from the dashboard get the hub's URL in their environment, so they follow the hub's port even if step 1 is skipped. Sessions you start in your own terminal read `SWARMCORP_URL` from `settings.json`, so they need step 1.
+To pin a fixed port anyway, start the hub with `--port 4400` (or set `port` in the config). Optionally, also run `npm run install-claude -- --port 4400` to change the fallback in `SWARMCORP_URL`.
 
 ## Removing the hooks
 

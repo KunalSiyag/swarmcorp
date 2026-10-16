@@ -3,7 +3,9 @@
 //   swarmcorp start [--project <dir>] [--port <n>] [--fleet]   run the dashboard (default port 4317)
 //   swarmcorp init [--port <n>]                                install hooks, agents and constitution into ~/.claude
 //   swarmcorp uninstall                                        remove the hooks, env var and CLAUDE.md block
-//   swarmcorp doctor                                           check Node, Claude Code, hooks, port and build
+//   swarmcorp open                                             open the running dashboard in your browser
+//   swarmcorp status                                           print where the dashboard is running
+//   swarmcorp doctor                                           check Node, agents, hooks, port and build
 //   swarmcorp receipt [--port <n>]                             print the current run's Markdown receipt
 //   swarmcorp simulate                                         replay a scripted fleet into a running dashboard
 import { spawn, spawnSync } from 'node:child_process';
@@ -18,7 +20,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const [cmd = 'help', ...rest] = process.argv.slice(2);
 const flag = (k) => { const i = rest.indexOf(`--${k}`); return i >= 0 ? rest[i + 1] : undefined; };
-const port = Number(flag('port') ?? process.env.SWARMCORP_PORT ?? 4317);
+/** The running hub's real address (its port may not be 4317), from the file it writes on start. */
+function runningHub() {
+  try {
+    const h = JSON.parse(fs.readFileSync(path.join(os.homedir(), '.config', 'swarmcorp', 'hub.json'), 'utf8'));
+    process.kill(h.pid, 0);
+    return h;
+  } catch { return null; }
+}
+const port = Number(flag('port') ?? process.env.SWARMCORP_PORT ?? runningHub()?.port ?? 4317);
 
 function runTs(file, args, extraEnv = {}) {
   const tsx = pathToFileURL(require.resolve('tsx/esm')).href;
@@ -71,6 +81,21 @@ switch (cmd) {
   case 'uninstall': runTs('scripts/install-claude.ts', ['--uninstall', ...rest]); break;
   case 'simulate': runTs('scripts/simulate.ts', rest, { SWARMCORP_URL: `http://127.0.0.1:${port}` }); break;
   case 'doctor': await doctor(); break;
+  case 'status': {
+    const h = runningHub();
+    if (!h) { console.log('SwarmCorp is not running. Start it with: swarmcorp start --project <dir>'); process.exitCode = 1; break; }
+    console.log(`SwarmCorp is running at ${h.url}\n  project  ${h.project}\n  since    ${h.startedAt}\n  pid      ${h.pid}`);
+    break;
+  }
+  case 'open': {
+    const h = runningHub();
+    if (!h) { console.log('SwarmCorp is not running. Start it with: swarmcorp start --project <dir>'); process.exitCode = 1; break; }
+    const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open';
+    const args = process.platform === 'win32' ? ['/c', 'start', '', h.url] : [h.url];
+    spawn(opener, args, { stdio: 'ignore', detached: true }).unref();
+    console.log(`Opening ${h.url}`);
+    break;
+  }
   case 'receipt': {
     try {
       const res = await fetch(`http://127.0.0.1:${port}/api/receipt`);

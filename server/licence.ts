@@ -122,6 +122,13 @@ export async function activateLicence(key: string): Promise<LicenceInfo> {
   return currentLicence();
 }
 
+/** The stored key itself, so the owner can back it up from Settings. Local-only (the hub binds 127.0.0.1). */
+export function storedKey(): string | null {
+  const env = process.env.SWARMCORP_LICENCE;
+  if (env) return env.trim();
+  return read()?.key ?? null;
+}
+
 export async function deactivateLicence(): Promise<LicenceInfo> {
   const s = read();
   // Free the activation slot so the key can be used on another machine.

@@ -3,6 +3,7 @@ import { Download, FolderGit2, KeyRound, Lock, Moon, ReceiptText, Sun, X } from 
 import type { ReceiptCompare, ReceiptSummary, Snapshot } from '../../shared/types.ts';
 import { swarm } from '../lib/swarmClient.ts';
 import { fmtAgo, fmtNum, type ThemeName } from '../lib/theme.ts';
+import { BUY_URL, PORTAL_URL } from '../lib/product.ts';
 
 interface Props {
   snap: Snapshot;
@@ -48,7 +49,7 @@ export default function Settings({ snap, theme, onTheme, onClose }: Props) {
         <ProjectSection snap={snap} pro={pro} />
         <ReceiptsSection pro={pro} />
         <p className="mt-auto px-5 py-4 font-mono text-[10px] leading-relaxed text-ink-3">
-          Licence keys are checked offline on this machine. Pro data (history, receipts) lives in ~/.local/share/swarmcorp.
+          Keys bought through Dodo are re-checked about once a day and keep working offline for 30 days. Pro data (history, receipts) lives in ~/.local/share/swarmcorp.
         </p>
       </aside>
     </div>
@@ -76,6 +77,7 @@ function LicenceSection({ snap }: { snap: Snapshot }) {
   return (
     <Section icon={<KeyRound size={14} />} title="Licence">
       {lic.plan === 'pro' ? (
+        <>
         <div className="flex items-start justify-between gap-3">
           <div className="font-mono text-[12px]">
             <div className="text-ok">✓ Pro active</div>
@@ -86,6 +88,11 @@ function LicenceSection({ snap }: { snap: Snapshot }) {
           <button type="button" disabled={busy} onClick={() => call(() => swarm.api('DELETE', '/api/licence'))}
             className="border border-line-2 px-3 py-1.5 font-mono text-[10px] tracking-widest text-ink-3 uppercase hover:text-ink">Deactivate</button>
         </div>
+        <KeyBackup />
+        <a href={PORTAL_URL} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-[10px] tracking-widest text-ink-3 uppercase underline decoration-signal underline-offset-4 hover:text-ink">
+          Billing portal: invoices and all your keys ↗
+        </a>
+        </>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); void call(() => swarm.api('POST', '/api/licence', { key })); }}>
           <p className="mb-3 text-[13px] text-ink-2">Pro adds run history, a receipt archive with compare, project switching and the Daylight theme. Paste the key from your purchase email. Deactivate frees the slot so you can move it to another machine.</p>
@@ -93,9 +100,42 @@ function LicenceSection({ snap }: { snap: Snapshot }) {
             aria-label="Licence key" className="mb-2 w-full resize-none border border-line-2 bg-void p-2 font-mono text-[11px] outline-none focus:border-signal" />
           <button type="submit" disabled={busy || !key.trim()} className="bg-signal px-4 py-2 font-mono text-[11px] font-semibold tracking-widest text-void uppercase disabled:opacity-40">Activate Pro</button>
           {err && <p className="mt-2 font-mono text-[11px] text-bad">{err}</p>}
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] tracking-widest uppercase">
+            <a href={BUY_URL} target="_blank" rel="noreferrer" className="text-signal hover:brightness-110">Buy Pro ↗</a>
+            <a href={PORTAL_URL} target="_blank" rel="noreferrer" className="text-ink-3 hover:text-ink">Lost your key? Billing portal ↗</a>
+          </div>
         </form>
       )}
     </Section>
+  );
+}
+
+/** Lets the owner back up the activated key: reveal, copy, or save it as a text file. */
+function KeyBackup() {
+  const [key, setKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const load = async () => { const r = await swarm.api<{ key: string | null }>('GET', '/api/licence/key'); setKey(r.key); return r.key; };
+  const download = async () => {
+    const k = key ?? (await load());
+    if (!k) return;
+    const url = URL.createObjectURL(new Blob([`SwarmCorp Pro licence key\n${k}\n\nActivate: SwarmCorp → Settings → Licence.\n`], { type: 'text/plain' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'swarmcorp-licence.txt' }).click();
+    URL.revokeObjectURL(url);
+  };
+  return (
+    <div className="mt-3 border-t border-line pt-3">
+      {key ? (
+        <div className="mb-2 flex items-stretch border border-line-2 bg-void">
+          <code className="min-w-0 flex-1 overflow-x-auto px-2 py-1.5 font-mono text-[11px] whitespace-nowrap">{key}</code>
+          <button type="button" onClick={() => navigator.clipboard?.writeText(key).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1200); }).catch(() => {})}
+            className="border-l border-line-2 px-2 font-mono text-[10px] uppercase text-ink-3 hover:text-ink">{copied ? 'Copied' : 'Copy'}</button>
+        </div>
+      ) : null}
+      <div className="flex gap-2">
+        <button type="button" onClick={() => (key ? setKey(null) : void load())} className="border border-line-2 px-3 py-1 font-mono text-[10px] tracking-widest text-ink-3 uppercase hover:text-ink">{key ? 'Hide key' : 'Reveal key'}</button>
+        <button type="button" onClick={download} className="border border-line-2 px-3 py-1 font-mono text-[10px] tracking-widest text-ink-3 uppercase hover:text-ink">Save as file</button>
+      </div>
+    </div>
   );
 }
 
@@ -140,7 +180,9 @@ function ReceiptsSection({ pro }: { pro: boolean }) {
   const toggle = (id: string) => { setCmp(null); setPick((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p.slice(-1), id])); };
   const compare = async () => {
     setErr(null);
-    try { setCmp(await swarm.api<ReceiptCompare>('GET', `/api/receipts/compare?a=${pick[0]}&b=${pick[1]}`)); } catch (e) { setErr((e as Error).message); }
+    // Older receipt is A, newer is B, so Δ reads as "what changed since".
+    const [a, b] = [...pick].sort((x, y) => (list.find((r) => r.id === x)?.createdAt ?? 0) - (list.find((r) => r.id === y)?.createdAt ?? 0));
+    try { setCmp(await swarm.api<ReceiptCompare>('GET', `/api/receipts/compare?a=${a}&b=${b}`)); } catch (e) { setErr((e as Error).message); }
   };
   return (
     <Section icon={<ReceiptText size={14} />} title="Receipt archive" locked={!pro}>

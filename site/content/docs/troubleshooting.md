@@ -42,7 +42,7 @@ Symptoms: a session runs, but its node never appears or never changes.
 1. **Restart the session**, or run `/hooks` inside it. Claude Code loads hooks when a session starts, so sessions that were open during `npm run install-claude` don't have them.
 2. **Check the install.** Open `~/.claude/settings.json` and look for entries containing `swarmcorp/swarm-hook.mjs`. If they are missing, run `npm run install-claude` again.
 3. **Check the port.** `env.SWARMCORP_URL` in `settings.json` must match the hub's port. If you moved the hub, run `npm run install-claude -- --port <port>`.
-4. **Check the hub.** Open `http://localhost:4317/api/health`. It returns `{"ok":true, ...}` with the port and project.
+4. **Check the hub.** Run `swarmcorp status`, then open `<address>/api/health`. It returns `{"ok":true, ...}` with the port and project.
 5. **Check the relay by hand:**
 
    ```bash
@@ -53,26 +53,18 @@ Symptoms: a session runs, but its node never appears or never changes.
 
 The relay exits 0 even when it can't reach the hub, so a failed post never shows as an error in Claude Code.
 
-## The port is already in use
+## The dashboard isn't on 4317
 
-```
-Error: listen EADDRINUSE: address already in use 127.0.0.1:4317
-```
+That's expected on some machines. If another program is already using port 4317, the hub moves to the next free port (4318, 4319, and so on) and says so when it starts. It writes the address it chose to `~/.config/swarmcorp/hub.json`, and the hook relay and the opencode plugin read that file, so telemetry follows the hub automatically.
 
-Another hub may already be running. Check with:
+To find or open the dashboard:
 
 ```bash
-lsof -i :4317
+swarmcorp status   # prints the address, project and pid
+swarmcorp open     # opens it in your browser
 ```
 
-Stop it, or run this hub on another port:
-
-```bash
-npm start -- --port 4400 --project ~/code/my-app
-npm run install-claude -- --port 4400
-```
-
-The second command points the hooks at the new port. Restart sessions afterwards.
+If the program on 4317 is an older SwarmCorp hub, the new one says "already running" and exits. Use `swarmcorp open` to reach the running one.
 
 ## Nothing shows on the map
 
