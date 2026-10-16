@@ -1,4 +1,4 @@
-import type { EdgeLabel, ModelTier, NodeStatus, PaneStatus } from '../../shared/types.ts';
+import type { AgentKind, EdgeLabel, ModelTier, NodeStatus, PaneStatus } from '../../shared/types.ts';
 
 // See docs/design-system.md. One accent (SIGNAL) for live data, primary actions and the active tab;
 // status colours only on status indicators; model identity by text tag + node size, never hue.
@@ -35,10 +35,13 @@ export let SEG_IDLE: string = PALETTES.night.segIdle;
 export let METER: string = PALETTES.night.meter;
 
 export const MODEL_TAG: Record<ModelTier, string> = {
-  opus: 'OPUS', sonnet: 'SONNET', haiku: 'HAIKU', fable: 'FABLE', unknown: 'CLAUDE',
+  opus: 'OPUS', sonnet: 'SONNET', haiku: 'HAIKU', fable: 'FABLE', gpt: 'GPT', gemini: 'GEMINI', unknown: 'MODEL',
 };
 /** Model weight → node size and ring weight (bigger model, heavier mark). */
-export const MODEL_WEIGHT: Record<ModelTier, number> = { fable: 1.15, opus: 1.1, sonnet: 1, haiku: 0.9, unknown: 1 };
+export const MODEL_WEIGHT: Record<ModelTier, number> = { fable: 1.15, opus: 1.1, sonnet: 1, haiku: 0.9, gpt: 1, gemini: 1, unknown: 1 };
+
+/** Agent identity, shown as text next to the model tag (never as colour). */
+export const AGENT_TAG: Record<AgentKind, string> = { claude: 'CLAUDE CODE', codex: 'CODEX', gemini: 'GEMINI CLI', antigravity: 'ANTIGRAVITY', opencode: 'OPENCODE' };
 
 export const STATUS_COLOR: Record<NodeStatus, string> = {
   running: PALETTES.night.run, idle: PALETTES.night.ok, done: PALETTES.night.ok,

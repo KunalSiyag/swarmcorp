@@ -7,9 +7,10 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as pty from 'node-pty';
-import type { ClientMsg, PaneInfo, ServerMsg, SetupStatus } from '../shared/types.ts';
+import type { AgentKind, ClientMsg, PaneInfo, ServerMsg, SetupStatus } from '../shared/types.ts';
 import { SwarmState, resolveProjectRoot, type HookEnvelope } from './swarm.ts';
 import { TranscriptTail } from './transcript.ts';
+import { normalize } from './adapters.ts';
 import { activateLicence, currentLicence, deactivateLicence, isPro } from './licence.ts';
 import { compareReceipts, getReceipt, listReceipts, saveReceipt } from './archive.ts';
 
@@ -89,6 +90,15 @@ function childEnv(extra: Record<string, string>): Record<string, string> {
   return { ...env, TERM: 'xterm-256color', COLORTERM: 'truecolor', SWARMCORP_URL: HUB_URL, ...extra };
 }
 
+/** Terminal roles that launch a CLI other than Claude Code. */
+const AGENT_COMMANDS: Record<string, { agent: AgentKind; command: string }> = {
+  codex: { agent: 'codex', command: 'codex' },
+  gemini: { agent: 'gemini', command: 'gemini' },
+  antigravity: { agent: 'antigravity', command: 'agy' },
+  opencode: { agent: 'opencode', command: 'opencode' },
+};
+const agentFor = (role: string): AgentKind => AGENT_COMMANDS[role]?.agent ?? 'claude';
+
 function spawnPane(spec: { role: string; agentId?: string; cwd?: string }, reuseId?: string): Pane {
   const role = spec.role || 'claude';
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(role)) throw new Error('invalid role');
@@ -101,8 +111,9 @@ function spawnPane(spec: { role: string; agentId?: string; cwd?: string }, reuse
   const id = reuseId ?? `pane-${crypto.randomBytes(3).toString('hex')}`;
   const info = state.roles.get(role);
   const isShell = role === 'shell';
-  const file = isShell ? (process.env.SHELL || '/bin/bash') : cfg.claudeCommand;
-  const args = isShell ? [] : role === 'claude' ? [...cfg.claudeArgs] : ['--agent', role, ...cfg.claudeArgs];
+  const other = AGENT_COMMANDS[role];
+  const file = isShell ? (process.env.SHELL || '/bin/bash') : other ? other.command : cfg.claudeCommand;
+  const args = isShell || other ? [] : role === 'claude' ? [...cfg.claudeArgs] : ['--agent', role, ...cfg.claudeArgs];
   const projectRoot = resolveProjectRoot(cwd);
   const proc = pty.spawn(file, args, {
     name: 'xterm-256color', cols: 100, rows: 30, cwd,
@@ -111,7 +122,7 @@ function spawnPane(spec: { role: string; agentId?: string; cwd?: string }, reuse
   const inst = /-(\d+)$/.exec(agentId)?.[1];
   const pane: Pane = {
     info: {
-      id, kind: 'pty', scope: 'session', inProject: true, parentLabel: null, role, agentId, label: inst && agentId !== role ? `${info.label} #${inst}` : info.label,
+      id, kind: 'pty', agent: agentFor(role), scope: 'session', inProject: true, parentLabel: null, role, agentId, label: inst && agentId !== role ? `${info.label} #${inst}` : info.label,
       avatar: info.avatar, model: info.model, cwd, command: [path.basename(file), ...args].join(' '),
       status: isShell ? 'idle' : 'starting', sessionId: null, nodeId: null, title: isShell ? cwd : 'Booting Claude…',
       autoWake: cfg.autoWake && !isShell, exitCode: null, createdAt: Date.now(),
@@ -302,7 +313,9 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req, 2 * 1024 * 1024);
       const env: HookEnvelope = body?.payload ? body : { hook: String(body?.hook_event_name ?? url.searchParams.get('hook') ?? 'Unknown'), payload: body };
       if (!env.hook) env.hook = String(env.payload?.hook_event_name ?? 'Unknown');
-      await state.ingest(env);
+      // Translate the sending agent's event into the canonical shape (see server/adapters.ts).
+      const canonical = normalize(env);
+      if (canonical) await state.ingest(canonical);
       res.writeHead(204).end();
       return;
     }

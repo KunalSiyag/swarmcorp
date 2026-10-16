@@ -17,9 +17,10 @@ const INSTRUMENTS = [
 ];
 
 const FAQ = [
-  { q: 'Does SwarmCorp send my code or prompts anywhere?', a: 'No. The hub binds to 127.0.0.1 and has no account, no analytics and no cloud. It reads Claude Code hook events and the transcript files already on your disk.' },
-  { q: 'Does it cost tokens?', a: 'No. SwarmCorp never calls a model. It watches the sessions you run; the token numbers it shows are the ones Claude Code already recorded.' },
-  { q: 'Does it work with my Claude subscription?', a: 'It works with whatever `claude` you are logged into, because it never touches authentication. It launches the same CLI you already use.' },
+  { q: 'Does SwarmCorp send my code or prompts anywhere?', a: 'No. The hub binds to 127.0.0.1 and has no account, no analytics and no cloud. It reads the hook events of your agents and the transcript files already on your disk.' },
+  { q: 'Does it cost tokens?', a: 'No. SwarmCorp never calls a model. It watches the sessions you run; the token numbers it shows are the ones your agents already recorded.' },
+  { q: 'Which agents does it support?', a: 'Claude Code, OpenAI Codex CLI, Gemini CLI, Google Antigravity (agy) and opencode. `swarmcorp init` connects every one it finds on your machine. Claude Code gets the most: launching role terminals and the dispatch queue are Claude-only for now.' },
+  { q: 'Does it work with my subscription?', a: 'Yes. SwarmCorp never touches authentication. It observes the CLIs you already use, logged in however you like.' },
   { q: 'What happens when the dashboard is off?', a: 'Nothing you would notice. The hook relay gives up after about 0.8 seconds and always exits 0, so Claude Code never waits on it.' },
   { q: 'How does the Pro licence work?', a: 'You buy once through Dodo Payments and get a licence key by email and on the receipt page. Paste it into Settings and Pro unlocks immediately. The key is activated once with Dodo (it sends the key and your machine name, nothing else), re-checked about once a day, and keeps working offline for 30 days.' },
   { q: 'Which platforms?', a: 'macOS and Linux with Node 20 or newer. Windows is untested.' },
@@ -27,7 +28,7 @@ const FAQ = [
 ];
 
 export default function Landing() {
-  useTitle('SwarmCorp: mission control for Claude Code agent fleets');
+  useTitle('SwarmCorp: mission control for coding agents');
   const sceneRef = useReveal<HTMLDivElement>();
   const latest = posts().slice(0, 3);
 
@@ -37,12 +38,13 @@ export default function Landing() {
       <section className="scan-grid border-b border-line">
         <div className="mx-auto max-w-[1280px] px-4 pt-12 pb-16 sm:px-6 md:pt-16">
           <div className="hud mb-6 flex flex-wrap gap-x-4 gap-y-1">
-            <span>For Claude Code</span><span>·</span><span>Local-first</span><span>·</span><span className="text-ink-2">v{SITE.version}</span>
+            <span>For coding agents</span><span>·</span><span>Local-first</span><span>·</span><span className="text-ink-2">v{SITE.version}</span>
           </div>
-          <h1 className="display text-[clamp(40px,6.6vw,104px)]">Mission control<br />for Claude Code.</h1>
+          <h1 className="display text-[clamp(40px,6.6vw,104px)]">Mission control<br />for coding agents.</h1>
           <div className="mt-6 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
             <div className="max-w-xl text-[19px] leading-relaxed text-ink-2">
               <p>Every session, subagent and background agent on one live map, on your machine.</p>
+              <p className="mt-2 font-mono text-[13px] text-ink-3">Claude Code · Codex · Gemini CLI · Antigravity · opencode</p>
               <p className="mt-2 text-ink">Every run ends in a receipt.</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -121,7 +123,7 @@ export default function Landing() {
           <div className="grid border-t border-line md:ml-[196px] md:grid-cols-2 xl:grid-cols-4">
             {[
               ['Stays on your machine', 'The hub binds 127.0.0.1. No account, no analytics, no cloud component.'],
-              ['Never blocks Claude', 'The hook relay gives up after 0.8 s and always exits 0. Dashboard off? Claude Code carries on.'],
+              ['Never blocks your agent', 'The hook relay gives up after 0.8 s and always exits 0. Dashboard off? Your agent carries on.'],
               ['Locked to localhost', 'Host and Origin checks stop DNS rebinding, cross-site WebSocket hijacking and CSRF.'],
               ['Reversible', 'The installer backs up ~/.claude first. --uninstall removes every hook it added.'],
             ].map(([t, b]) => (
@@ -138,7 +140,7 @@ export default function Landing() {
       <section id="install" className="scroll-mt-14 border-b border-line">
         <div className="mx-auto max-w-[1280px] px-4 py-24 sm:px-6">
           <PlateHead n="06" kicker="Install" title="Three commands. Then watch.">
-            Needs Node 20+ and Claude Code, logged in. macOS or Linux.
+            Needs Node 20+ and at least one supported agent: Claude Code, Codex, Gemini CLI, Antigravity or opencode. macOS or Linux.
           </PlateHead>
           <div className="max-w-3xl space-y-3 md:ml-[196px]">
             <Cmd label="01" cmd={`git clone ${REPO} swarmcorp && cd swarmcorp && npm install`} />

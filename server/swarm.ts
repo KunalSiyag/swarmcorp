@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type {
-  EdgeLabel, FeedItem, FeedLevel, Metrics, NodeStatus, PaneInfo, PlanSummary, PlanTask, Pulse,
+  AgentKind, EdgeLabel, FeedItem, FeedLevel, Metrics, NodeStatus, PaneInfo, PlanSummary, PlanTask, Pulse,
   RunResult, Snapshot, SwarmEdge, SwarmNode, TokenTotals,
 } from '../shared/types.ts';
 import { RoleRegistry, modelTier } from './roles.ts';
@@ -17,6 +17,8 @@ export interface HookEnvelope {
   hook: string;
   at?: number;
   swarm?: { role?: string | null; agentId?: string | null; paneId?: string | null };
+  /** Which coding agent sent the event; the relay adds it. Missing means Claude Code. */
+  agent?: AgentKind;
   payload: Record<string, any>;
 }
 
@@ -29,6 +31,7 @@ interface SessionMeta {
   agentId: string | null;
   root: string | null;
   turns: { start: number; end: number | null; result: RunResult; title: string }[];
+  agent: AgentKind;
 }
 
 interface Run {
@@ -130,6 +133,7 @@ export class SwarmState extends EventEmitter {
   private timers: NodeJS.Timeout[] = [];
   private projectRoot: string;
   private retiredAgentFiles = new Set<string>();
+  private seenUsage = new Set<string>();
   /** Subagents of project sessions that finished before the hub saw them (last 24 h): terminal-only, no map node. */
   private earlierAgents = new Map<string, { agentId: string; sid: string; type: string; title: string; mtime: number; file: string; limit: string | null }>();
   readonly roles: RoleRegistry;
@@ -170,7 +174,7 @@ export class SwarmState extends EventEmitter {
     return {
       id, kind, role, label, avatar, model, title: '', status, result: null, parent: null, sessionId: null,
       paneId: null, cwd: null, tokens: 0, activeRuns: 0, runs: 0, passes: 0, fails: 0, unread: 0,
-      context: 0, contextMax: 200_000, inProject: true, createdAt: now, updatedAt: now,
+      agent: 'claude', context: 0, contextMax: 200_000, inProject: true, createdAt: now, updatedAt: now,
     };
   }
 
@@ -295,7 +299,7 @@ export class SwarmState extends EventEmitter {
         const pending = [...this.runs.values()]
           .filter((r) => r.sessionId === sid && r.type === type && !r.agentId && !r.finished)
           .sort((a, b) => a.startedAt - b.startedAt)[0];
-        const run = pending ?? this.startRun(sid, type, meta.nodeId, 'Starting…');
+        const run = pending ?? this.startRun(sid, type, meta.nodeId, firstLine(p.description) || 'Starting…');
         run.agentId = agentId;
         this.runByAgent.set(agentId, run.id);
         break;
@@ -365,8 +369,34 @@ export class SwarmState extends EventEmitter {
         this.log('OFFLINE', `${sNode.label} offline`, 'info', sNode.id);
         break;
       }
+      case 'Usage': {
+        // Agents without a transcript file (opencode) report token usage per finished message.
+        const key = `${sid}:${p.message_id ?? ''}`;
+        if (!p.message_id || this.seenUsage.has(key)) break;
+        this.seenUsage.add(key);
+        if (this.seenUsage.size > 20_000) this.seenUsage.clear();
+        const t = p.tokens ?? {};
+        const d: TokenTotals = {
+          input: Number(t.input) || 0, output: (Number(t.output) || 0) + (Number(t.reasoning) || 0),
+          cacheRead: Number(t.cache?.read) || 0, cacheWrite: Number(t.cache?.write) || 0, total: 0,
+        };
+        d.total = d.input + d.output + d.cacheRead + d.cacheWrite;
+        const run = typeof p.agent_id === 'string' ? this.runs.get(this.runByAgent.get(p.agent_id) ?? '') : undefined;
+        const target = (run && this.nodes.get(run.nodeId)) || sNode;
+        this.addTokens(d, target);
+        if (run) run.tokens += d.total;
+        target.context = d.input + d.cacheRead + d.cacheWrite;
+        break;
+      }
+      case 'ModelInfo':
+        break; // model is applied below
       default:
         break;
+    }
+    // Codex, Gemini and Antigravity name the model on their events; Claude's comes from the transcript.
+    if (typeof p.model === 'string' && !inSub) {
+      const t = modelTier(p.model);
+      if (t !== 'unknown') sNode.model = t;
     }
     if (meta.transcript) {
       this.addTokens(await this.meter.update(meta.transcript, this.tokenSince), sNode);
@@ -401,16 +431,19 @@ export class SwarmState extends EventEmitter {
     let meta = this.sessions.get(sid);
     const topLevelRole = !p.agent_id && env.hook === 'SessionStart' && typeof p.agent_type === 'string' ? p.agent_type : null;
     if (!meta) {
-      const role = sw.role || topLevelRole || 'claude';
+      const agent: AgentKind = env.agent ?? 'claude';
+      // A session without a SwarmCorp role is just "that agent in that folder": Claude · app, Codex · app.
+      const role = sw.role || topLevelRole || agent;
       const agentId = sw.agentId || (sw.role ? sw.role : null);
-      meta = { sid, nodeId: `s:${sid}`, transcript: null, paneId: null, role, agentId, root: null, turns: [] };
+      meta = { sid, nodeId: `s:${sid}`, transcript: null, paneId: null, role, agentId, root: null, turns: [], agent };
       this.sessions.set(sid, meta);
       const info = this.roles.get(role);
       const inst = agentId && agentId !== role ? /-(\d+)$/.exec(agentId)?.[1] : null;
-      const label = role === 'claude'
-        ? `Claude · ${path.basename(String(p.cwd ?? '')) || 'session'}`
+      const label = role === agent
+        ? `${info.label} · ${path.basename(String(p.cwd ?? '')) || 'session'}`
         : inst ? `${info.label} #${inst}` : info.label;
       const n = this.blank(meta.nodeId, 'session', this.roles.baseRole(role), label, info.avatar, info.model, 'idle');
+      n.agent = agent;
       n.sessionId = sid;
       n.cwd = typeof p.cwd === 'string' ? p.cwd : null;
       this.nodes.set(n.id, n);
@@ -474,6 +507,10 @@ export class SwarmState extends EventEmitter {
       n = this.blank(id, 'agent', this.roles.baseRole(type), tag ? `${info.label} · ${tag}` : info.label, info.avatar, info.model, 'idle');
       n.sessionId = sid;
       n.parent = parentId;
+      const meta = this.sessions.get(sid);
+      n.agent = meta?.agent ?? 'claude';
+      // Codex, Gemini and opencode don't name a subagent's model: it runs on its session's model.
+      if (n.model === 'unknown' && meta) n.model = this.nodes.get(meta.nodeId)?.model ?? 'unknown';
       this.nodes.set(id, n);
     }
     return n;
@@ -985,7 +1022,7 @@ export class SwarmState extends EventEmitter {
         const info = this.roles.get(t.earlier.type);
         const tag = /^\s*([A-Z][A-Z0-9]*-[A-Z0-9]+)\b/.exec(t.earlier.title)?.[1];
         panes.push({
-          id: t.id, kind: 'transcript', scope: 'agent', role: this.roles.baseRole(t.earlier.type), agentId: t.earlier.type,
+          id: t.id, kind: 'transcript', agent: meta?.agent ?? 'claude', scope: 'agent', role: this.roles.baseRole(t.earlier.type), agentId: t.earlier.type,
           label: tag ? `${info.label} · ${tag}` : info.label, avatar: info.avatar, model: info.model, cwd: t.cwd,
           command: 'earlier subagent · read-only', status: t.earlier.limit ? 'waiting' : 'idle', sessionId: t.sid, nodeId: null,
           title: t.earlier.limit
@@ -997,7 +1034,7 @@ export class SwarmState extends EventEmitter {
       }
       const n = this.nodes.get(t.nodeId)!;
       panes.push({
-        id: t.id, kind: 'transcript', scope: t.scope, role: n.role, agentId: meta?.agentId ?? n.role, label: n.label,
+        id: t.id, kind: 'transcript', agent: n.agent, scope: t.scope, role: n.role, agentId: meta?.agentId ?? n.role, label: n.label,
         avatar: n.avatar, model: n.model, cwd: t.cwd,
         command: t.scope === 'agent' ? 'subagent transcript · read-only' : 'your terminal · read-only mirror',
         status: n.status === 'running' ? 'running' : n.status === 'waiting' ? 'waiting' : 'idle',

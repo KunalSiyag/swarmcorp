@@ -1,10 +1,10 @@
 # SwarmCorp
 
-**Mission control for Claude Code agent fleets.** It shows every session, subagent and background agent on one live map, on your machine. Every run ends in a receipt.
+**Mission control for coding agents:** Claude Code, Codex, Gemini CLI, Antigravity and opencode. It shows every session, subagent and background agent on one live map, on your machine. Every run ends in a receipt.
 
 **Website:** https://kunalsiyag.github.io/swarmcorp/ · [Docs](https://kunalsiyag.github.io/swarmcorp/docs/getting-started/) · [Blog](https://kunalsiyag.github.io/swarmcorp/blog/) · [Workflow tips](https://kunalsiyag.github.io/swarmcorp/tips/)
 
-> Agent counts are cheap. Run logs aren't. Every number SwarmCorp shows traces back to a Claude Code hook event or a transcript line on your disk.
+> Agent counts are cheap. Run logs aren't. Every number SwarmCorp shows traces back to an agent's hook event or a transcript line on your disk.
 
 SwarmCorp has six instruments:
 - **Swarm map.** Each session and each subagent run is a node. Delegations, code reviews, failures and permission requests travel along the links as they happen.
@@ -18,7 +18,7 @@ It is local-first. The hub binds to `127.0.0.1` and checks Host and Origin heade
 
 ## Install
 
-You need Node 20+ and Claude Code installed and logged in, on macOS or Linux. Windows is untested.
+You need Node 20+ and at least one supported agent, on macOS or Linux. Windows is untested. `swarmcorp init` connects every agent it finds; see [supported agents](site/content/docs/agents.md).
 
 ```bash
 git clone https://github.com/KunalSiyag/swarmcorp.git swarmcorp && cd swarmcorp && npm install && npm run build
@@ -86,4 +86,4 @@ To test end to end without real money, use a Dodo test-mode product and run the 
 
 **Licence.** SwarmCorp is source-available under the [Functional Source License 1.1, ALv2 future](LICENSE.md). You can use, modify and redistribute it for anything except a competing commercial product. Each version becomes Apache-2.0 two years after its release.
 
-SwarmCorp is not affiliated with Anthropic. Claude and Claude Code are trademarks of Anthropic, PBC.
+SwarmCorp is not affiliated with Anthropic, OpenAI, Google or SST. Product names are trademarks of their owners.

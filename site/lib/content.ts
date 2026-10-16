@@ -57,7 +57,7 @@ function parse(path: string, src: string): Doc {
 
 export const DOCS: Doc[] = Object.entries(raw).map(([p, s]) => parse(p, s));
 export const posts = () => DOCS.filter((d) => d.section === 'blog').sort((a, b) => b.date.localeCompare(a.date));
-const DOC_ORDER = ['getting-started', 'pro', 'hooks', 'dispatch-queue', 'configuration', 'troubleshooting'];
+const DOC_ORDER = ['getting-started', 'agents', 'pro', 'hooks', 'dispatch-queue', 'configuration', 'troubleshooting'];
 export const docs = () => DOCS.filter((d) => d.section === 'docs').sort((a, b) => DOC_ORDER.indexOf(a.slug) - DOC_ORDER.indexOf(b.slug));
 export const page = (slug: string) => DOCS.find((d) => d.section === 'page' && d.slug === slug);
 export const find = (section: Doc['section'], slug: string) => DOCS.find((d) => d.section === section && d.slug === slug);

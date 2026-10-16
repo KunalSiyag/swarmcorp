@@ -50,7 +50,7 @@ export function Footer() {
         <div>
           <div className="display text-[28px]">SWARMCORP</div>
           <p className="mt-3 max-w-xs font-mono text-[11px] leading-relaxed text-ink-3">
-            Mission control for Claude Code. Runs on your machine. Agent counts are cheap. Run logs aren't.
+            Mission control for coding agents. Runs on your machine. Agent counts are cheap. Run logs aren't.
           </p>
         </div>
         <FooterCol title="Product" links={[['/#instruments', 'Instruments'], ['/#pricing', 'Pricing'], ['/changelog', 'Changelog']]} />
@@ -59,7 +59,7 @@ export function Footer() {
       </div>
       <div className="mx-auto flex max-w-[1280px] flex-wrap justify-between gap-2 border-t border-line px-4 py-4 sm:px-6">
         <span className="hud">v{SITE.version} · local-first · no account · source-available (FSL-1.1)</span>
-        <span className="hud normal-case tracking-normal">Not affiliated with Anthropic. Claude and Claude Code are trademarks of Anthropic, PBC.</span>
+        <span className="hud normal-case tracking-normal">Not affiliated with Anthropic, OpenAI, Google or SST. Product names are trademarks of their owners.</span>
       </div>
     </footer>
   );

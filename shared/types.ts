@@ -1,6 +1,8 @@
 // Wire types shared by server/ and client/.
 
-export type ModelTier = 'opus' | 'sonnet' | 'haiku' | 'fable' | 'unknown';
+export type ModelTier = 'opus' | 'sonnet' | 'haiku' | 'fable' | 'gpt' | 'gemini' | 'unknown';
+/** Which coding agent a session belongs to. Each one has an adapter in server/adapters.ts. */
+export type AgentKind = 'claude' | 'codex' | 'gemini' | 'antigravity' | 'opencode';
 export type NodeStatus = 'idle' | 'running' | 'waiting' | 'done' | 'failed' | 'offline';
 export type NodeKind = 'user' | 'session' | 'agent' | 'virtual';
 export type RunResult = 'PASS' | 'FAIL' | 'BLOCKED' | null;
@@ -15,6 +17,7 @@ export type EdgeLabel =
 
 export interface SwarmNode {
   id: string;
+  agent: AgentKind;
   kind: NodeKind;
   role: string;
   label: string;
@@ -75,6 +78,7 @@ export interface PaneInfo {
   id: string;
   /** pty: a terminal the hub owns. transcript: a read-only live mirror of a session in your own terminal. */
   kind: 'pty' | 'transcript';
+  agent: AgentKind;
   /** What the pane shows: a whole session, or one subagent run (mirrors only). */
   scope: 'session' | 'agent';
   /** Session/run belongs to the dashboard's project. */

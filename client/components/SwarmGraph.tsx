@@ -7,7 +7,7 @@ import { Crosshair, Focus, Maximize2, Minimize2, FolderGit2 } from 'lucide-react
 import type { EdgeLabel, Pulse, SwarmEdge, SwarmNode } from '../../shared/types.ts';
 import { swarm } from '../lib/swarmClient.ts';
 import {
-  CANVAS, EDGE_COLOR, GRID_DOT, INK, INK_2, INK_3, LINE_2, MODEL_TAG, NODE_FILL, MODEL_WEIGHT, SIGNAL, STATUS_COLOR, STATUS_ICON, STATUS_WORD, fmtNum,
+  AGENT_TAG, CANVAS, EDGE_COLOR, GRID_DOT, INK, INK_2, INK_3, LINE_2, MODEL_TAG, NODE_FILL, MODEL_WEIGHT, SIGNAL, STATUS_COLOR, STATUS_ICON, STATUS_WORD, fmtNum,
 } from '../lib/theme.ts';
 
 interface SimNode extends SimulationNodeDatum { id: string; r: number; level: number }
@@ -341,7 +341,7 @@ export default function SwarmGraph({
             const first = !born.current.has(n.id);
             if (first) born.current.add(n.id);
             const title = n.title.length > 42 ? `${n.title.slice(0, 41)}…` : n.title;
-            const tag = n.kind === 'user' ? 'FOUNDER' : MODEL_TAG[n.model];
+            const tag = n.kind === 'user' ? 'FOUNDER' : n.agent !== 'claude' ? `${AGENT_TAG[n.agent]}${n.model !== 'unknown' ? ` · ${MODEL_TAG[n.model]}` : ''}` : MODEL_TAG[n.model];
             const b = r + 13; // selection bracket half-size
             return (
               <g key={n.id} transform={`translate(${s.x ?? 0},${s.y ?? 0})`} opacity={dim(n.id) * (n.status === 'offline' ? 0.4 : 1)}

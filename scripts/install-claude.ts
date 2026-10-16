@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { OTHER_AGENTS, detect, installAgent, type OtherAgent } from './agent-installers.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'claude-home');
@@ -117,6 +118,23 @@ function main() {
   for (const [f, s] of report) console.log(`  ${s.padEnd(10)} ${f}`);
   if (backedUp) console.log(`Backups: ${BACKUP}`);
   if (!UNINSTALL) console.log('Restart running Claude Code sessions (or run /hooks) to pick up the new hooks.');
+
+  // Other coding agents: the detected ones by default, or exactly the list given with --agents.
+  // A --target run (tests) leaves the real agent configs alone unless --agents is passed explicitly.
+  const flag = arg('agents');
+  const wanted: OtherAgent[] = flag === 'none' ? [] : flag === 'all' || flag === undefined
+    ? OTHER_AGENTS.filter((a) => (flag === 'all' || (!arg('target') && detect(a))))
+    : flag.split(',').map((s) => s.trim()).filter((s): s is OtherAgent => (OTHER_AGENTS as string[]).includes(s));
+  if (!wanted.length) return;
+  const ctx = {
+    relay: path.join(TARGET, 'swarmcorp', 'swarm-hook.mjs'), pluginSrc: path.join(SRC, 'swarmcorp', 'opencode-plugin.js'),
+    backupDir: BACKUP, uninstall: UNINSTALL, url: PORT ? `http://127.0.0.1:${PORT}` : 'http://127.0.0.1:4317',
+  };
+  console.log(`\n${UNINSTALL ? 'Removed from' : 'Connected'} other agents:`);
+  for (const a of wanted) {
+    try { console.log(`  ${a.padEnd(12)} ${installAgent(a, ctx)}`); }
+    catch (e) { console.log(`  ${a.padEnd(12)} skipped: ${(e as Error).message}`); }
+  }
 }
 
 try { main(); } catch (e) { console.error(`install-claude: ${(e as Error).message}`); process.exit(1); }

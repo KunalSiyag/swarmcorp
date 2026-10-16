@@ -11,7 +11,7 @@ export const SITE = {
   siteUrl: 'https://kunalsiyag.github.io/swarmcorp',
   /** Any other checkout link (Lemon Squeezy, Gumroad…), used only when dodoProductId is empty. */
   proCheckoutUrl: '',
-  version: '0.3',
+  version: '0.4',
 };
 
 /** Dodo payment link. Dodo appends payment_id, status, email and license_key to redirect_url after payment. */

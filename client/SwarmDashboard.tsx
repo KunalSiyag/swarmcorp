@@ -125,7 +125,7 @@ function TopBar({ snap, connected, onSettings }: { snap: Snapshot; connected: bo
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-void px-4">
       <div className="flex shrink-0 items-baseline gap-3">
         <span className="display text-[22px] tracking-tight">SWARMCORP</span>
-        <span className="hud hidden lg:inline">Mission control · Claude Code</span>
+        <span className="hud hidden lg:inline">Mission control · coding agents</span>
       </div>
       <div className="min-w-0 flex-1"><Scoreboard m={snap.metrics} /></div>
       <LaunchControls snap={snap} />
@@ -150,7 +150,8 @@ function LaunchControls({ snap }: { snap: Snapshot }) {
     setErr(null);
     try { await fn(); setOpen(false); } catch (e) { setErr((e as Error).message); }
   };
-  const roles = [...snap.roles.map((r) => r.name), 'claude', 'shell'];
+  // SwarmCorp roles run Claude Code; the other entries launch that agent's own CLI.
+  const roles = [...snap.roles.map((r) => r.name), 'claude', 'codex', 'gemini', 'antigravity', 'opencode', 'shell'];
   const btn = 'flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] tracking-[0.14em] uppercase';
   return (
     <div className="relative flex shrink-0 items-center gap-1.5">

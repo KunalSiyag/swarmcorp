@@ -18,6 +18,10 @@ const PRESETS: Record<string, { label: string; avatar: string; model?: ModelTier
   user: { label: 'You · Founder', avatar: 'YOU' },
   shell: { label: 'Shell', avatar: 'SH' },
   claude: { label: 'Claude', avatar: 'CC' },
+  codex: { label: 'Codex', avatar: 'CDX', model: 'gpt' },
+  gemini: { label: 'Gemini CLI', avatar: 'GEM', model: 'gemini' },
+  antigravity: { label: 'Antigravity', avatar: 'AGY', model: 'gemini' },
+  opencode: { label: 'opencode', avatar: 'OC' },
 };
 
 export function modelTier(s: unknown): ModelTier {
@@ -26,6 +30,9 @@ export function modelTier(s: unknown): ModelTier {
   if (v.includes('sonnet')) return 'sonnet';
   if (v.includes('haiku')) return 'haiku';
   if (v.includes('fable')) return 'fable';
+  if (v.includes('claude')) return 'unknown';
+  if (/\bgpt|codex|\bo[134]\b|\bo[134]-/.test(v)) return 'gpt';
+  if (v.includes('gemini')) return 'gemini';
   return 'unknown';
 }
 

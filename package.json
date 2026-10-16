@@ -1,8 +1,8 @@
 {
   "name": "swarmcorp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "Local-first mission control for Claude Code agent fleets: live map, timeline, context meters and run receipts.",
+  "description": "Local-first mission control for coding agents (Claude Code, Codex, Gemini CLI, Antigravity and opencode): live map, timeline, context meters, terminals and run receipts.",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
@@ -66,12 +66,16 @@
     "LICENSE.md"
   ],
   "keywords": [
-    "claude-code",
     "agents",
+    "antigravity",
+    "claude-code",
+    "codex",
     "dashboard",
-    "observability",
+    "gemini-cli",
+    "hooks",
     "multi-agent",
-    "hooks"
+    "observability",
+    "opencode"
   ],
   "license": "FSL-1.1-ALv2",
   "repository": {

@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:A;src:url(../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2) format('woff2-variations');font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:M;src:url(../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations');font-weight:100 800}
+html,body{margin:0;width:1024px;height:1024px;background:#050506;overflow:hidden}
+.c{position:relative;width:1024px;height:1024px;background-image:radial-gradient(circle at 1px 1px,#1a1b1e 1.4px,transparent 0);background-size:40px 40px}
+.f{position:absolute;inset:56px;border:2px solid #1c1d20}
+.f:before,.f:after{content:"";position:absolute;width:34px;height:34px;border:3px solid #ff5a1f}
+.f:before{top:-3px;left:-3px;border-width:3px 0 0 3px}.f:after{bottom:-3px;right:-3px;border-width:0 3px 3px 0}
+.hud{position:absolute;font:500 22px M;letter-spacing:.18em;color:#6f6b65;text-transform:uppercase}
+.w{position:absolute;left:96px;bottom:150px;font:850 98px/0.92 A;font-stretch:115%;letter-spacing:-.025em;color:#ece7df}
+.p{color:#ff5a1f;text-shadow:0 0 40px rgba(255,90,31,.6)}
+svg{position:absolute;left:0;top:0}
+</style></head><body><div class="c"><div class="f"></div>
+<div class="hud" style="left:96px;top:96px">Plate 01 · Mission control</div>
+<div class="hud" style="right:96px;top:96px">v0.3</div>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024">
+ <defs><filter id="g" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+ <g stroke="#2f3031" stroke-width="2" fill="none"><line x1="620" y1="330" x2="400" y2="470"/><line x1="620" y1="330" x2="560" y2="560"/><line x1="620" y1="330" x2="800" y2="500"/><line x1="800" y1="500" x2="560" y2="560"/></g>
+ <line x1="620" y1="330" x2="800" y2="500" stroke="#ff5a1f" stroke-width="3" stroke-dasharray="4 10"/>
+ <circle cx="728" cy="432" r="9" fill="#ff5a1f" filter="url(#g)"/>
+ <g font-family="M" font-weight="800" fill="#ece7df" text-anchor="middle" dominant-baseline="central">
+  <circle cx="620" cy="330" r="74" fill="#0d0e10" stroke="#ece7df" stroke-opacity=".5" stroke-width="2"/><circle cx="620" cy="330" r="90" fill="none" stroke="#4c8dff" stroke-width="4" stroke-dasharray="6 12"/><text x="620" y="332" font-size="34">CEO</text>
+  <circle cx="400" cy="470" r="46" fill="#0d0e10" stroke="#6f6b65" stroke-dasharray="7 5" stroke-width="2"/><circle cx="400" cy="470" r="60" fill="none" stroke="#3ddc84" stroke-width="3"/><text x="400" y="472" font-size="22">RES</text>
+  <circle cx="560" cy="560" r="46" fill="#0d0e10" stroke="#6f6b65" stroke-dasharray="7 5" stroke-width="2"/><circle cx="560" cy="560" r="60" fill="none" stroke="#4c8dff" stroke-width="3" stroke-dasharray="5 9"/><text x="560" y="562" font-size="22">DEV</text>
+  <circle cx="800" cy="500" r="46" fill="#0d0e10" stroke="#6f6b65" stroke-dasharray="7 5" stroke-width="2"/><circle cx="800" cy="500" r="60" fill="none" stroke="#ffb020" stroke-width="3"/><text x="800" y="502" font-size="22">QA</text>
+ </g>
+</svg>
+<div class="w">SWARMCORP<br><span class="p">PRO</span></div>
+<div class="hud" style="left:96px;bottom:96px">Agent counts are cheap. Run logs aren't.</div>
+</div></body></html>

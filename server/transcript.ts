@@ -37,8 +37,44 @@ export function toolSummary(name: string, input: any, cwd: string): string {
   }
 }
 
+const firstText = (o: any, keys = ['content', 'text', 'message', 'response', 'user_input', 'prompt']): string => {
+  if (typeof o === 'string') return o;
+  if (Array.isArray(o)) return o.map((x) => firstText(x)).filter(Boolean).join(' ');
+  if (o && typeof o === 'object') for (const k of keys) { const v = firstText(o[k], keys); if (v) return v; }
+  return '';
+};
+const userLine = (t: string) => (t ? `\r\n${ORANGE}${BOLD}❯${RESET} ${nl(clip(stripTags(t), 600))}\r\n` : '');
+const agentLine = (t: string) => (t.trim() ? `${BOLD}●${RESET} ${nl(t.trim())}\r\n` : '');
+const toolLine = (name: string, detail: string) => `${CYAN}⏺ ${name}${RESET}${detail ? `${DIM}(${clip(detail, 90)})${RESET}` : ''}\r\n`;
+
+/** Codex rollout, Gemini chat and Antigravity step lines (see docs/adapters-research.md). */
+function formatOtherAgentRow(row: any): string {
+  if (row?.type === 'response_item') {
+    const p = row.payload ?? {};
+    if (p.type === 'message') return p.role === 'user' ? userLine(firstText(p.content)) : p.role === 'assistant' ? agentLine(firstText(p.content)) : '';
+    if (p.type === 'function_call' || p.type === 'custom_tool_call') return toolLine(String(p.name ?? 'tool'), typeof p.arguments === 'string' ? p.arguments : JSON.stringify(p.input ?? ''));
+    if (p.type === 'local_shell_call') return toolLine('shell', firstText(p.action?.command) || JSON.stringify(p.action?.command ?? ''));
+    return '';
+  }
+  const g = row?.$set && typeof row.$set === 'object' && row.$set.type ? row.$set : row;
+  if (g?.type === 'user') return userLine(firstText(g.content));
+  if (g?.type === 'gemini') {
+    const calls = Array.isArray(g.toolCalls) ? g.toolCalls.map((c: any) => toolLine(String(c.name ?? 'tool'), JSON.stringify(c.args ?? {}))).join('') : '';
+    return agentLine(firstText(g.content)) + calls;
+  }
+  if (typeof row?.type === 'string' && /^(CORTEX_STEP_TYPE_)?[A-Z_]+$/.test(row.type) && row.step_index !== undefined) {
+    const t = row.type.replace(/^CORTEX_STEP_TYPE_/, '');
+    if (t === 'USER_INPUT') return userLine(firstText(row));
+    if (t === 'PLANNER_RESPONSE') return agentLine(firstText(row));
+    if (t === 'CHECKPOINT') return '';
+    return toolLine(t.toLowerCase(), '');
+  }
+  return '';
+}
+
 export function formatTranscriptRow(row: any, cwd: string): string {
   const msg = row?.message;
+  if (!msg && !row?.isMeta) return formatOtherAgentRow(row);
   if (!msg || row.isMeta) return '';
   const content = msg.content;
   let out = '';

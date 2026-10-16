@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { AlarmClock, Eye, Maximize2, Minimize2, RotateCcw, X } from 'lucide-react';
 import type { PaneInfo } from '../../shared/types.ts';
 import { swarm } from '../lib/swarmClient.ts';
-import { MODEL_TAG, PANE_ICON, PANE_WORD } from '../lib/theme.ts';
+import { AGENT_TAG, MODEL_TAG, PANE_ICON, PANE_WORD } from '../lib/theme.ts';
 
 interface Props {
   pane: PaneInfo;
@@ -107,7 +107,7 @@ export default function TerminalPane({ pane, maximized, highlighted, onToggleMax
           <span className="shrink-0 font-mono text-[10px] font-bold text-ink-3">{pane.avatar}</span>
           <span className="truncate text-[12px] font-semibold text-ink">{pane.scope === 'agent' ? `↳ ${pane.label}` : pane.label}</span>
         </button>
-        <span className="hud shrink-0">{pane.role === 'shell' ? 'SHELL' : MODEL_TAG[pane.model]}</span>
+        <span className="hud shrink-0">{pane.role === 'shell' ? 'SHELL' : pane.agent !== 'claude' ? `${AGENT_TAG[pane.agent]}${pane.model !== 'unknown' ? ` · ${MODEL_TAG[pane.model]}` : ''}` : MODEL_TAG[pane.model]}</span>
         <span className="hud shrink-0 text-ink-2" title={PANE_WORD[pane.status]}>{PANE_ICON[pane.status]}<span className="ml-1 hidden @[520px]:inline">{PANE_WORD[pane.status]}</span></span>
         {readOnly && (
           <span className="hud flex shrink-0 items-center gap-1 border border-line-2 px-1 text-ink-2" title="Live mirror of a session running in your own terminal. Type in that terminal.">

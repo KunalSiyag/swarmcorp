@@ -6,6 +6,16 @@ tag: Changelog
 readingTime: "1 min"
 ---
 
+## v0.4 — 2026-10-16
+
+**Added**
+
+- **Every major coding agent, not just Claude Code.** Adapters for **OpenAI Codex CLI**, **Gemini CLI**, **Google Antigravity (`agy`)** and **opencode**. Each one normalises the agent's own hook or plugin events into the same map, timeline, terminals and receipts. Codex, Gemini CLI, Antigravity and opencode are in beta; see [Supported agents](/docs/agents).
+- `swarmcorp init` detects the installed agents and connects each one in its own config format: Codex `hooks.json`, Gemini `settings.json`, Antigravity `hooks.json`, and an opencode plugin. It merges with existing hooks and backs up first. `--agents` picks agents by hand.
+- Token meters read Codex rollouts, Gemini chat files and Antigravity step transcripts. The opencode plugin reports usage per message.
+- Terminal mirrors render Codex, Gemini and Antigravity transcripts.
+- Agent and model tags (CODEX · GPT, GEMINI CLI · GEMINI) on nodes and panes. Launch `codex`, `gemini`, `agy` or `opencode` panes from the dashboard.
+
 ## v0.3 — 2026-10-16
 
 **Added**

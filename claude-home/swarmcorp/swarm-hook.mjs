@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// SwarmCorp hook relay. Invoked by ~/.claude/settings.json as:  node swarm-hook.mjs <HookEventName>
+// SwarmCorp hook relay. Invoked by each agent's hook config as:
+//   node swarm-hook.mjs <HookEventName>                 (Claude Code)
+//   node swarm-hook.mjs --agent <agent> <EventName>     (codex | gemini | antigravity)
 //  1. Forwards the hook payload (trimmed) to the SwarmCorp dashboard: POST $SWARMCORP_URL/api/events
 //  2. For swarm employees: injects unread inbox mail into context (SessionStart / UserPromptSubmit)
 //     and asks the agent to process mail once before it stops (Stop).
@@ -7,7 +9,9 @@
 
 import { inbox, resolveProjectRoot } from './swarm-mail.mjs';
 
-const HOOK = process.argv[2] ?? 'Unknown';
+const argv = process.argv.slice(2);
+const AGENT = argv[0] === '--agent' ? argv[1] : 'claude';
+const HOOK = (argv[0] === '--agent' ? argv[2] : argv[0]) ?? 'Unknown';
 const BASE = (process.env.SWARMCORP_URL ?? 'http://127.0.0.1:4317').replace(/\/+$/, '');
 const ROLES = new Set(['ceo-dispatcher', 'opus-researcher', 'sonnet-implementer', 'haiku-tester', 'opus-auditor']);
 
@@ -58,7 +62,7 @@ async function forward(payload, swarm) {
     await fetch(`${BASE}/api/events`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-swarmcorp-hook': '1' },
-      body: JSON.stringify({ hook: HOOK, at: Date.now(), swarm, payload: trim(payload) }),
+      body: JSON.stringify({ hook: HOOK, agent: AGENT, at: Date.now(), swarm, payload: trim(payload) }),
       signal: ctrl.signal,
     });
   } catch { /* dashboard not running: telemetry is best-effort */ }
@@ -85,7 +89,8 @@ async function main() {
 
   await forward(payload, swarm);
 
-  if (!role || !mainThread) return;
+  // Mail injection speaks Claude Code's hook-output format; other agents only get telemetry.
+  if (!role || !mainThread || AGENT !== 'claude') return;
   let msgs = [];
   let root = '';
   try {
