@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "refero@anthropic-plugin-directory": true
+  }
+}

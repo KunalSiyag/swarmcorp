@@ -1,0 +1,44 @@
+@import "tailwindcss";
+@import "../shared/tokens.css";
+@source "./";
+
+html, body, #root { height: 100%; }
+body { overflow: hidden; }
+
+/* Pane status chrome (status colours only here). */
+.pane { transition: border-color .4s ease, box-shadow .4s ease; }
+.pane[data-status="running"] { border-color: color-mix(in oklab, var(--color-run) 70%, transparent); box-shadow: 0 0 22px -10px var(--color-run); }
+.pane[data-status="idle"]    { border-color: color-mix(in oklab, var(--color-ok) 45%, transparent); box-shadow: 0 0 26px -12px var(--color-ok); }
+.pane[data-status="waiting"] { border-color: var(--color-wait); animation: wait-pulse 1.4s ease-in-out infinite; }
+.pane[data-status="starting"]{ border-color: var(--color-line-2); }
+.pane[data-status="exited"]  { border-color: color-mix(in oklab, var(--color-bad) 45%, transparent); opacity: .75; }
+@keyframes wait-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-wait) 40%, transparent); }
+  50%      { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-wait) 25%, transparent), 0 0 30px -6px var(--color-wait); }
+}
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 9999px; background: var(--color-ink-3); }
+.status-dot[data-status="running"] { background: var(--color-run); box-shadow: 0 0 8px var(--color-run); animation: blink 1s ease-in-out infinite; }
+.status-dot[data-status="idle"], .status-dot[data-status="done"] { background: var(--color-ok); box-shadow: 0 0 8px var(--color-ok); }
+.status-dot[data-status="waiting"] { background: var(--color-wait); box-shadow: 0 0 8px var(--color-wait); animation: blink .6s ease-in-out infinite; }
+.status-dot[data-status="failed"], .status-dot[data-status="exited"] { background: var(--color-bad); }
+@keyframes blink { 50% { opacity: .3; } }
+
+/* Graph motion */
+.ring-spin  { transform-box: fill-box; transform-origin: center; animation: spin 6s linear infinite; }
+.ring-pulse { transform-box: fill-box; transform-origin: center; animation: ring-pulse 1.8s ease-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes ring-pulse { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(1.6); opacity: 0; } }
+.edge-flow { stroke-dasharray: 2 6; animation: flow .8s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -16; } }
+.node-enter { animation: node-in .6s cubic-bezier(.2,1.3,.4,1); transform-box: fill-box; transform-origin: center; }
+@keyframes node-in { from { transform: scale(.3); opacity: 0; } }
+.feed-enter { animation: feed-in .4s ease-out; }
+@keyframes feed-in { from { opacity: 0; background: color-mix(in oklab, var(--color-signal) 14%, transparent); } }
+
+.xterm { padding: 6px 0 0 8px; height: 100%; }
+.xterm .xterm-viewport { background: transparent !important; }
+.balance { text-wrap: balance; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-spin, .ring-pulse, .edge-flow, .pane[data-status="waiting"], .status-dot, .node-enter, .feed-enter { animation: none !important; }
+}

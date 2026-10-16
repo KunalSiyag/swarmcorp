@@ -1,0 +1,109 @@
+{
+  "$comment": "SwarmCorp hook telemetry. Merged into ~/.claude/settings.json by `npm run install-claude` ($HOME is expanded to an absolute path on install). Every hook relays its payload to POST $SWARMCORP_URL/api/events; the relay never blocks Claude for more than ~0.8s and always exits 0.",
+  "env": {
+    "SWARMCORP_URL": "http://127.0.0.1:4317"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" SessionStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" UserPromptSubmit",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" PreToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" PostToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" SubagentStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" SubagentStop",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" Notification",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" Stop",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/swarmcorp/swarm-hook.mjs\" SessionEnd",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

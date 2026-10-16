@@ -1,0 +1,18 @@
+{
+  "port": 4317,
+  "host": "127.0.0.1",
+  "project": null,
+  "capacity": 12,
+  "maxPanes": 12,
+  "autoWake": true,
+  "claudeCommand": "claude",
+  "claudeArgs": [],
+  "fleet": [
+    { "role": "ceo-dispatcher", "agentId": "ceo-dispatcher" },
+    { "role": "opus-researcher", "agentId": "opus-researcher" },
+    { "role": "sonnet-implementer", "agentId": "sonnet-implementer-1" },
+    { "role": "sonnet-implementer", "agentId": "sonnet-implementer-2" },
+    { "role": "haiku-tester", "agentId": "haiku-tester" },
+    { "role": "opus-auditor", "agentId": "opus-auditor" }
+  ]
+}

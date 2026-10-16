@@ -1,0 +1,82 @@
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
+
+/* SwarmCorp design system: see docs/design-system.md for the reference lock and decision ledger.
+   Primary direction: Cutline (dark HUD). Orange is SIGNAL only: live data, active value, primary CTA. */
+@theme {
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Surfaces from Refero "Raycast: midnight command center": near-black canvas, barely-visible steps. */
+  --color-void: #050506;
+  --color-panel: #08090a;
+  --color-panel-2: #111214;
+  --color-line: #1c1d20;
+  --color-line-2: #2f3031;
+  --color-ink: #ece7df;
+  --color-ink-2: #a8a39b;
+  --color-ink-3: #6f6b65;
+
+  --color-signal: #ff5a1f;
+  --color-paper: #e9e5dc;
+  --color-paper-ink: #111111;
+
+  /* status: dots, rings and pane borders only */
+  --color-run: #4c8dff;
+  --color-ok: #3ddc84;
+  --color-wait: #ffb020;
+  --color-bad: #ff4d4d;
+}
+
+/* Daylight (Pro): Refero "Vercel: typeset terminal on white paper" surfaces + "Brex: single ember" accent. */
+:root[data-theme="daylight"] {
+  --color-void: #fafafa;
+  --color-panel: #ffffff;
+  --color-panel-2: #f2f2f2;
+  --color-line: #ebebeb;
+  --color-line-2: #d4d4d4;
+  --color-ink: #171717;
+  --color-ink-2: #4d4d4d;
+  --color-ink-3: #8f8f8f;
+  --color-signal: #ff5900;
+  --color-run: #0a63e8;
+  --color-ok: #18794e;
+  --color-wait: #a35200;
+  --color-bad: #cd2b31;
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-void);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--color-line-2) transparent; }
+::selection { background: color-mix(in oklab, var(--color-signal) 45%, transparent); color: #fff; }
+:focus-visible { outline: 1px solid var(--color-signal); outline-offset: 2px; }
+
+@layer components {
+/* Display type: Cutline's heavy, wide grotesk. */
+/* Tracking per Refero "Depot": display tight (-0.025em), labels loose (see .hud). */
+.display { font-family: var(--font-sans); font-weight: 850; font-stretch: 112%; letter-spacing: -0.025em; line-height: 0.95; }
+.hud { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.glow { color: var(--color-signal); text-shadow: 0 0 18px color-mix(in oklab, var(--color-signal) 70%, transparent); }
+
+/* Frames: 1px hairline, zero radius, corner brackets (Cutline plates). */
+/* Elevation from Raycast's "keyboard key" recipe: inset highlight + inset shade, never a drop shadow. */
+.frame {
+  position: relative; border: 1px solid var(--color-line); background: var(--color-panel);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.25);
+}
+:root[data-theme="daylight"] .frame { box-shadow: inset 0 1px 0 #fff, 0 1px 0 rgba(0,0,0,0.03); }
+.frame::before, .frame::after {
+  content: ""; position: absolute; width: 9px; height: 9px; pointer-events: none;
+  border-color: var(--color-ink-3); border-style: solid;
+}
+.frame::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+.frame::after { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+.frame[data-active="true"]::before, .frame[data-active="true"]::after { border-color: var(--color-signal); }
+}
