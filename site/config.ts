@@ -8,7 +8,7 @@ export const SITE = {
   /** Dodo Payments product id (pdt_…) for the one-time Pro product, with licence keys enabled. Empty = "Checkout opens soon". */
   dodoProductId: '',
   /** Public URL the site is served from, used for Dodo's redirect back to /thanks. */
-  siteUrl: '',
+  siteUrl: 'https://kunalsiyag.github.io/swarmcorp',
   /** Any other checkout link (Lemon Squeezy, Gumroad…), used only when dodoProductId is empty. */
   proCheckoutUrl: '',
   version: '0.3',
