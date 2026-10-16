@@ -10,6 +10,8 @@ readingTime: "1 min"
 
 **Added**
 
+- **Buy Pro is live.** A one-time purchase through Dodo Payments. The licence key appears on the receipt page and is emailed to you.
+
 - **Every major coding agent, not just Claude Code.** Adapters for **OpenAI Codex CLI**, **Gemini CLI**, **Google Antigravity (`agy`)** and **opencode**. Each one normalises the agent's own hook or plugin events into the same map, timeline, terminals and receipts. Codex, Gemini CLI, Antigravity and opencode are in beta; see [Supported agents](/docs/agents).
 - `swarmcorp init` detects the installed agents and connects each one in its own config format: Codex `hooks.json`, Gemini `settings.json`, Antigravity `hooks.json`, and an opencode plugin. It merges with existing hooks and backs up first. `--agents` picks agents by hand.
 - Token meters read Codex rollouts, Gemini chat files and Antigravity step transcripts. The opencode plugin reports usage per message.
