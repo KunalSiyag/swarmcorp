@@ -17,7 +17,7 @@ export const SITE = {
 /** Dodo payment link. Dodo appends payment_id, status, email and license_key to redirect_url after payment. */
 export function checkoutUrl(): string {
   if (SITE.dodoProductId) {
-    const back = SITE.siteUrl ? `&redirect_url=${encodeURIComponent(SITE.siteUrl.replace(/\/$/, '') + '/thanks')}` : '';
+    const back = SITE.siteUrl ? `&redirect_url=${encodeURIComponent(SITE.siteUrl.replace(/\/$/, '') + '/thanks/')}` : '';
     return `https://checkout.dodopayments.com/buy/${encodeURIComponent(SITE.dodoProductId)}?quantity=1${back}`;
   }
   return SITE.proCheckoutUrl;

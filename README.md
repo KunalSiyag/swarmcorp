@@ -2,6 +2,8 @@
 
 **Mission control for Claude Code agent fleets.** It shows every session, subagent and background agent on one live map, on your machine. Every run ends in a receipt.
 
+**Website:** https://kunalsiyag.github.io/swarmcorp/ · [Docs](https://kunalsiyag.github.io/swarmcorp/docs/getting-started/) · [Blog](https://kunalsiyag.github.io/swarmcorp/blog/) · [Workflow tips](https://kunalsiyag.github.io/swarmcorp/tips/)
+
 > Agent counts are cheap. Run logs aren't. Every number SwarmCorp shows traces back to a Claude Code hook event or a transcript line on your disk.
 
 SwarmCorp has six instruments:
