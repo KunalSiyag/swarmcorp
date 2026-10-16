@@ -72,7 +72,15 @@ The core is free. **Pro** is a one-time licence that adds:
 
 See [site/content/docs/pro.md](site/content/docs/pro.md).
 
-**Issuing licence keys (seller only).** `npx tsx scripts/issue-licence.ts --email buyer@example.com` prints a key. Keys are signed with the Ed25519 private key in `~/.config/swarmcorp-seller/private.pem`, which was created once with `--init`. **Back that file up, and never commit or ship it.** The app only contains the public key, in `server/licence.ts`. Keys are verified offline.
+**Selling Pro with Dodo Payments.** Dodo generates and emails a licence key for each purchase. SwarmCorp activates and validates those keys through Dodo's public licence API, so no fulfilment server is needed.
+
+1. In the Dodo dashboard, create a one-time product called "SwarmCorp Pro" and turn on **License keys**. An activation limit of 3 machines is a sensible start.
+2. Put the product ID (`pdt_…`) in `site/config.ts` as `dodoProductId`, and the site's public URL as `siteUrl`. After payment, Dodo redirects buyers to `/thanks`, which shows their key.
+3. Rebuild and redeploy the site with `npm run build:site`. For GitHub Pages, run `SITE_BASE=/swarmcorp/ npm run build:site`.
+
+To test end to end without real money, use a Dodo test-mode product and run the hub with `SWARMCORP_DODO_ENV=test`.
+
+**Issuing licence keys by hand (seller only).** `npx tsx scripts/issue-licence.ts --email buyer@example.com` prints a key. Keys are signed with the Ed25519 private key in `~/.config/swarmcorp-seller/private.pem`, which was created once with `--init`. **Back that file up, and never commit or ship it.** The app only contains the public key, in `server/licence.ts`. Keys are verified offline.
 
 **Licence.** SwarmCorp is source-available under the [Functional Source License 1.1, ALv2 future](LICENSE.md). You can use, modify and redistribute it for anything except a competing commercial product. Each version becomes Apache-2.0 two years after its release.
 

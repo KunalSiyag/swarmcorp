@@ -22,14 +22,14 @@ Everything in Free stays free: the map, the timeline for the current run, contex
 
 ## Activate a licence
 
-After you buy Pro, you get a licence key by email. It's one long line with a dot in the middle.
+You buy Pro through Dodo Payments. The key appears on the receipt page right after checkout, and Dodo emails you a copy.
 
 1. Open the dashboard and click the **Free** button in the top bar to open **Settings**.
 2. Paste the key under **Licence** and press **Activate Pro**.
 
 The button in the top bar changes to **Pro**. Nothing restarts.
 
-If you run SwarmCorp somewhere without the UI, set the key in the environment instead:
+If you run SwarmCorp somewhere without the UI, a seller-issued signed key can also be set in the environment:
 
 ```bash
 SWARMCORP_LICENCE="<your key>" swarmcorp start --project ~/code/app
@@ -37,11 +37,17 @@ SWARMCORP_LICENCE="<your key>" swarmcorp start --project ~/code/app
 
 ## How the key is checked
 
-The key is a small signed payload containing the plan, your email, an id and the issue date. SwarmCorp checks the Ed25519 signature against a public key built into the app.
+There are two kinds of key.
 
-- **No licence server.** Verification is local, so Pro keeps working offline and nothing phones home.
-- **Stored with owner-only permissions** in `~/.config/swarmcorp/licence.key` (mode `600`).
-- **One person, all their machines.** Activate the same key on your laptop and your desktop.
+**Keys bought through Dodo Payments** are activated once against Dodo's public licence API:
+- Activation sends the key and a label with your machine's hostname (`SwarmCorp on <hostname>`). Nothing about your projects, prompts or code is sent.
+- After that, SwarmCorp re-validates the key in the background about once a day.
+- If the check can't reach Dodo, Pro keeps working for 30 days after the last successful check.
+- Each key has an activation limit, set on the product. **Deactivate** frees a slot so you can move it to another machine.
+
+**Keys issued directly by the seller** (for comps, press and manual sales) are Ed25519-signed and verified fully offline. They are never checked against a server.
+
+Either kind is stored with owner-only permissions in `~/.config/swarmcorp/licence.key` (mode `600`).
 
 ## Where Pro keeps data
 
@@ -54,7 +60,7 @@ The key is a small signed payload containing the plan, your email, an id and the
 
 ## Move or remove a licence
 
-- **Deactivate:** **Settings → Licence → Deactivate**. The key file is deleted and the dashboard returns to Free. Your history and receipts stay on disk.
+- **Deactivate:** **Settings → Licence → Deactivate**. For a Dodo key this also frees its activation slot with Dodo. The key file is deleted and the dashboard returns to Free. Your history and receipts stay on disk.
 - **Lost the key:** reply to your purchase email with the address you bought with.
 
 On the Free plan, the Pro API routes (`/api/receipts`, `/api/project`) answer `402 Payment Required` with a short message.

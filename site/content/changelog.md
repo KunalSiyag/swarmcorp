@@ -8,9 +8,16 @@ readingTime: "1 min"
 
 ## v0.3 — 2026-10-16
 
+**Added**
+
+- **A terminal for every Claude operation.** The grid mirrors every session plus every subagent run: live, finished in the last 10 minutes, and this project's earlier agents from the last 24 hours. It has a scope filter (All, Sessions, Agents), a Live-only toggle and paging. Each agent pane says which session spawned it.
+- **Usage-limit detection.** Agents and sessions that stop on "You've hit your session limit" show as blocked (amber), with the reset time, instead of done.
+- **Buy Pro with Dodo Payments.** The checkout link is built from a product ID. The new `/thanks` page shows the licence key Dodo returns after payment.
+
 **Added (Pro)**
 
-- **Licence keys.** Signed with Ed25519 and verified offline. Paste a key in **Settings**, or set `SWARMCORP_LICENCE`. No account, no licence server.
+- **Dodo licence keys.** Activated through Dodo's public licence API, re-checked daily, with a 30-day offline grace period. Deactivate frees the activation slot.
+- **Seller-issued keys.** Signed with Ed25519 and verified offline. Paste a key in **Settings**, or set `SWARMCORP_LICENCE`. No account, no licence server.
 - **Run history.** Finished agent runs and session turns are written to `~/.local/share/swarmcorp/history/` and appear as HISTORY lanes in the timeline after a restart.
 - **Receipt archive.** Save a receipt of the current run, download any saved receipt, and compare two side by side (tokens, runs, failures, average run time, tokens per role). A receipt is saved automatically when the hub stops.
 - **Project switching.** Point the dashboard at another project from Settings without restarting the hub.

@@ -5,7 +5,20 @@ export const SITE = {
   repoUrl: 'https://github.com/KunalSiyag/swarmcorp.git',
   /** One-time Pro licence price shown on the pricing section. A business decision: change freely. */
   proPrice: '$29',
-  /** Checkout link for Pro (e.g. a Dodo Payments or Lemon Squeezy product link). Empty = "Checkout opens soon". */
+  /** Dodo Payments product id (pdt_…) for the one-time Pro product, with licence keys enabled. Empty = "Checkout opens soon". */
+  dodoProductId: '',
+  /** Public URL the site is served from, used for Dodo's redirect back to /thanks. */
+  siteUrl: '',
+  /** Any other checkout link (Lemon Squeezy, Gumroad…), used only when dodoProductId is empty. */
   proCheckoutUrl: '',
   version: '0.3',
 };
+
+/** Dodo payment link. Dodo appends payment_id, status, email and license_key to redirect_url after payment. */
+export function checkoutUrl(): string {
+  if (SITE.dodoProductId) {
+    const back = SITE.siteUrl ? `&redirect_url=${encodeURIComponent(SITE.siteUrl.replace(/\/$/, '') + '/thanks')}` : '';
+    return `https://checkout.dodopayments.com/buy/${encodeURIComponent(SITE.dodoProductId)}?quantity=1${back}`;
+  }
+  return SITE.proCheckoutUrl;
+}

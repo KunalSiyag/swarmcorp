@@ -79,15 +79,16 @@ function LicenceSection({ snap }: { snap: Snapshot }) {
         <div className="flex items-start justify-between gap-3">
           <div className="font-mono text-[12px]">
             <div className="text-ok">✓ Pro active</div>
-            <div className="text-ink-2">{lic.email}</div>
+            <div className="text-ink-2">{lic.email ?? (lic.source === 'dodo' ? 'Bought through Dodo Payments' : 'Licence key')} <span className="text-ink-3">{lic.keyHint}</span></div>
             {lic.issuedAt && <div className="text-ink-3">issued {lic.issuedAt.slice(0, 10)}</div>}
+            {lic.source === 'dodo' && <div className="text-ink-3">Re-checked with Dodo about once a day. Works offline for 30 days.</div>}
           </div>
           <button type="button" disabled={busy} onClick={() => call(() => swarm.api('DELETE', '/api/licence'))}
             className="border border-line-2 px-3 py-1.5 font-mono text-[10px] tracking-widest text-ink-3 uppercase hover:text-ink">Deactivate</button>
         </div>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); void call(() => swarm.api('POST', '/api/licence', { key })); }}>
-          <p className="mb-3 text-[13px] text-ink-2">Pro adds run history, a receipt archive with compare, project switching and the Daylight theme. Paste the key from your purchase email.</p>
+          <p className="mb-3 text-[13px] text-ink-2">Pro adds run history, a receipt archive with compare, project switching and the Daylight theme. Paste the key from your purchase email. Deactivate frees the slot so you can move it to another machine.</p>
           <textarea value={key} onChange={(e) => setKey(e.target.value)} rows={3} spellCheck={false} placeholder="eyJ2Ijox…"
             aria-label="Licence key" className="mb-2 w-full resize-none border border-line-2 bg-void p-2 font-mono text-[11px] outline-none focus:border-signal" />
           <button type="submit" disabled={busy || !key.trim()} className="bg-signal px-4 py-2 font-mono text-[11px] font-semibold tracking-widest text-void uppercase disabled:opacity-40">Activate Pro</button>

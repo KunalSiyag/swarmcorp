@@ -5,6 +5,7 @@ import { usePath } from './lib/router.tsx';
 import { Footer, Nav } from './components/Chrome.tsx';
 import Landing, { PricingSection } from './pages/Landing.tsx';
 import { BlogIndex, BlogPost, DocPage, NotFound, SinglePage } from './pages/Reading.tsx';
+import Thanks from './pages/Thanks.tsx';
 
 function Route() {
   const path = usePath().replace(/\/+$/, '') || '/';
@@ -16,6 +17,7 @@ function Route() {
   if (path.startsWith('/docs/')) return <DocPage slug={path.slice(6)} />;
   if (path === '/tips') return <SinglePage slug="tips" />;
   if (path === '/changelog') return <SinglePage slug="changelog" />;
+  if (path === '/thanks') return <Thanks />;
   return <NotFound />;
 }
 

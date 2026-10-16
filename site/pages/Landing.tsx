@@ -3,7 +3,7 @@ import LiveDemo from '../components/LiveDemo.tsx';
 import { Cmd, PlateHead, useReveal } from '../components/Chrome.tsx';
 import { Link, useTitle } from '../lib/router.tsx';
 import { posts } from '../lib/content.ts';
-import { SITE } from '../config.ts';
+import { SITE, checkoutUrl } from '../config.ts';
 
 const REPO = SITE.repoUrl || '<repo-url>';
 
@@ -21,7 +21,7 @@ const FAQ = [
   { q: 'Does it cost tokens?', a: 'No. SwarmCorp never calls a model. It watches the sessions you run; the token numbers it shows are the ones Claude Code already recorded.' },
   { q: 'Does it work with my Claude subscription?', a: 'It works with whatever `claude` you are logged into, because it never touches authentication. It launches the same CLI you already use.' },
   { q: 'What happens when the dashboard is off?', a: 'Nothing you would notice. The hook relay gives up after about 0.8 seconds and always exits 0, so Claude Code never waits on it.' },
-  { q: 'How does the Pro licence work?', a: 'You buy once and get a licence key by email. Paste it into Settings and Pro unlocks immediately. The key is checked offline with a signature, so SwarmCorp never contacts a licence server and keeps working without internet.' },
+  { q: 'How does the Pro licence work?', a: 'You buy once through Dodo Payments and get a licence key by email and on the receipt page. Paste it into Settings and Pro unlocks immediately. The key is activated once with Dodo (it sends the key and your machine name, nothing else), re-checked about once a day, and keeps working offline for 30 days.' },
   { q: 'Which platforms?', a: 'macOS and Linux with Node 20 or newer. Windows is untested.' },
   { q: 'Is this an Anthropic product?', a: 'No. SwarmCorp is independent and is not affiliated with or endorsed by Anthropic.' },
 ];
@@ -245,14 +245,14 @@ export function PricingSection() {
             <div className="display num text-[56px]">{SITE.proPrice}</div>
             <div className="mb-6 font-mono text-[12px] text-ink-3">one-time licence, one person, all their machines</div>
             <ul className="mb-8 space-y-2.5 text-[15px] text-ink-2">{pro.map((f) => <li key={f} className="flex gap-2"><span className="text-signal">◆</span>{f}</li>)}</ul>
-            {SITE.proCheckoutUrl ? (
-              <a href={SITE.proCheckoutUrl} className="inline-flex items-center gap-2 bg-signal px-5 py-3 font-mono text-[12px] font-semibold tracking-[0.14em] text-void uppercase hover:brightness-110">Buy Pro <ArrowRight size={14} /></a>
+            {checkoutUrl() ? (
+              <a href={checkoutUrl()} className="inline-flex items-center gap-2 bg-signal px-5 py-3 font-mono text-[12px] font-semibold tracking-[0.14em] text-void uppercase hover:brightness-110">Buy Pro <ArrowRight size={14} /></a>
             ) : (
               <span className="inline-flex cursor-not-allowed items-center gap-2 border border-line-2 px-5 py-3 font-mono text-[12px] tracking-[0.14em] text-ink-3 uppercase" title="The checkout link is not live yet">Checkout opens soon</span>
             )}
           </div>
         </div>
-        <p className="mt-6 font-mono text-[12px] text-ink-3 md:ml-[196px]">Pro is a licence key you paste into Settings. It's verified offline on your machine, with no account and no phone-home. <Link to="/docs/pro" className="underline decoration-signal underline-offset-4">How Pro works</Link>.</p>
+        <p className="mt-6 font-mono text-[12px] text-ink-3 md:ml-[196px]">Pay with Dodo Payments. Your licence key arrives by email and on the receipt page: paste it into Settings. It's activated once with Dodo, then re-checked about once a day, and keeps working offline for 30 days. No account. <Link to="/docs/pro" className="underline decoration-signal underline-offset-4">How Pro works</Link>.</p>
       </div>
     </section>
   );

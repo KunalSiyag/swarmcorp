@@ -49,7 +49,8 @@ function parse(path: string, src: string): Doc {
     date: meta.date ?? '',
     tag: meta.tag ?? '',
     readingTime: meta.readingTime ?? '',
-    html: md.parse(body) as string,
+    // Absolute links in Markdown must respect the base path (GitHub Pages serves under /<repo>/).
+    html: (md.parse(body) as string).replace(/href="\//g, `href="${import.meta.env.BASE_URL.replace(/\/$/, '')}/`),
     headings,
   };
 }

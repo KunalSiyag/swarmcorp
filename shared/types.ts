@@ -180,6 +180,9 @@ export interface LicenceInfo {
   plan: 'free' | 'pro';
   email: string | null;
   issuedAt: string | null;
+  /** dodo: bought through Dodo Payments (activated online). signed: issued offline by the seller. */
+  source: 'dodo' | 'signed' | null;
+  keyHint: string | null;
 }
 
 export interface ReceiptSummary {

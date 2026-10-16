@@ -15,7 +15,7 @@
     "install-claude": "tsx scripts/install-claude.ts",
     "typecheck": "tsc --noEmit",
     "dev:site": "vite --config vite.site.config.ts",
-    "build:site": "vite build --config vite.site.config.ts",
+    "build:site": "vite build --config vite.site.config.ts && cp dist-site/index.html dist-site/404.html",
     "preview:site": "vite preview --config vite.site.config.ts --port 4173",
     "prepack": "npm run build",
     "doctor": "node bin/swarmcorp.mjs doctor"

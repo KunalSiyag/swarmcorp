@@ -310,8 +310,8 @@ const server = http.createServer(async (req, res) => {
     if (method === 'GET' && pathname === '/api/setup') return json(res, 200, setupStatus());
     if (pathname === '/api/licence') {
       if (method === 'GET') return json(res, 200, currentLicence());
-      if (method === 'POST') { const b = await readBody(req); const info = activateLicence(String(b.key ?? '')); state.emit('change'); return json(res, 200, info); }
-      if (method === 'DELETE') { const info = deactivateLicence(); state.emit('change'); return json(res, 200, info); }
+      if (method === 'POST') { const b = await readBody(req); const info = await activateLicence(String(b.key ?? '')); state.emit('change'); return json(res, 200, info); }
+      if (method === 'DELETE') { const info = await deactivateLicence(); state.emit('change'); return json(res, 200, info); }
     }
     // ── Pro ──
     if (pathname === '/api/project' || pathname.startsWith('/api/receipts')) {

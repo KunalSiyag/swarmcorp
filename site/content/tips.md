@@ -64,7 +64,7 @@ SwarmCorp's five profiles use Opus for the CEO, researcher and auditor, Sonnet f
 claude --agent ceo-dispatcher
 ```
 
-The session runs with that agent's prompt, model and tools from the first turn. Agent files live in `~/.claude/agents/` for every project or `.claude/agents/` for one. Run `/agents` inside a session to see which ones it found.
+The session runs with that agent's prompt, model and tools from the first turn. Agent files live in `~/.claude/agents/` for every project or `.claude/agents/` for one. To check which agents a session found, ask Claude to list them, or look in those two folders. In recent versions, `/agents` prints a reminder rather than opening a manager.
 
 ## 8. Keep MCP servers project-scoped
 
